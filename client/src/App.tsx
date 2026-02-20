@@ -7,6 +7,7 @@ import NotFound from "@/pages/not-found";
 import { SidebarLayout } from "./components/layout/SidebarLayout";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 
 function Router() {
   const [location, setLocation] = useLocation();
@@ -14,15 +15,15 @@ function Router() {
   // Basic mockup authentication check
   const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
 
-  // Redirect to login if not authenticated and not already on login page
-  if (!isAuthenticated && location !== "/login") {
+  // Redirect to login if not authenticated and not already on login/register page
+  if (!isAuthenticated && location !== "/login" && location !== "/register") {
     // Wrap in timeout to avoid updating state during render
     setTimeout(() => setLocation("/login"), 0);
     return null;
   }
 
-  // Redirect to dashboard if authenticated and on login page
-  if (isAuthenticated && location === "/login") {
+  // Redirect to dashboard if authenticated and on login/register page
+  if (isAuthenticated && (location === "/login" || location === "/register")) {
     setTimeout(() => setLocation("/"), 0);
     return null;
   }
@@ -30,6 +31,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/login" component={Login} />
+      <Route path="/register" component={Register} />
       <Route>
         <SidebarLayout>
           <Switch>

@@ -1,12 +1,13 @@
 import { Link, useLocation } from "wouter";
-import { 
-  LayoutDashboard, 
-  Building2, 
-  Users, 
-  Files, 
-  Wrench, 
-  CircleDollarSign, 
-  MessageSquare, 
+import React from "react";
+import {
+  LayoutDashboard,
+  Building2,
+  Users,
+  Files,
+  Wrench,
+  CircleDollarSign,
+  MessageSquare,
   Settings,
   Bell,
   Search,
@@ -15,13 +16,13 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 
 const navigation = [
@@ -34,6 +35,12 @@ const navigation = [
 
 export function SidebarLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
+  const [userEmail, setUserEmail] = React.useState("");
+
+  React.useEffect(() => {
+    const email = localStorage.getItem("userEmail") || "";
+    setUserEmail(email);
+  }, []);
 
   return (
     <div className="flex h-[100dvh] overflow-hidden bg-[#F2F2F7] dark:bg-black font-sans">
@@ -75,10 +82,10 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
               <div className="flex items-center gap-3 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 p-3 rounded-2xl transition-all">
                 <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
                   <AvatarImage src="/src/assets/images/avatar_1.jpg" />
-                  <AvatarFallback>JD</AvatarFallback>
+                  <AvatarFallback>{userEmail ? userEmail.substring(0, 2).toUpperCase() : "LL"}</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col flex-1">
-                  <span className="text-sm font-semibold leading-none">Jane Doe</span>
+                  <span className="text-sm font-semibold leading-none">{userEmail || "Landlord"}</span>
                   <span className="text-xs text-muted-foreground mt-1">Property Manager</span>
                 </div>
               </div>
@@ -89,10 +96,12 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
               <DropdownMenuItem className="rounded-xl px-3 py-2 cursor-pointer">Profile Settings</DropdownMenuItem>
               <DropdownMenuItem className="rounded-xl px-3 py-2 cursor-pointer">Security</DropdownMenuItem>
               <DropdownMenuSeparator className="my-1" />
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 className="text-destructive focus:text-destructive cursor-pointer rounded-xl px-3 py-2"
                 onClick={() => {
                   localStorage.removeItem("isAuthenticated");
+                  localStorage.removeItem("authToken");
+                  localStorage.removeItem("userEmail");
                   window.location.href = "/login";
                 }}
               >
@@ -172,10 +181,12 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 rounded-2xl mb-2">
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 className="text-destructive font-medium rounded-xl"
                 onClick={() => {
                   localStorage.removeItem("isAuthenticated");
+                  localStorage.removeItem("authToken");
+                  localStorage.removeItem("userEmail");
                   window.location.href = "/login";
                 }}
               >

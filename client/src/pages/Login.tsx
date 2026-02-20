@@ -1,4 +1,4 @@
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { Building2, ArrowRight, Mail, Lock } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { apiClient } from "@/lib/api";
 import React from "react";
 
 export default function Login() {
@@ -15,9 +16,9 @@ export default function Login() {
   const [password, setPassword] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email || !password) {
       toast({
         variant: "destructive",
@@ -29,15 +30,38 @@ export default function Login() {
 
     setIsLoading(true);
 
-    // Simulate API call for mockup
-    setTimeout(() => {
+    try {
+      const response = await apiClient.post("/api/auth/login", {
+        email,
+        password,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Login failed");
+      }
+
+      // Store auth token and user info
+      localStorage.setItem("authToken", data.token);
+      localStorage.setItem("userEmail", data.email);
       localStorage.setItem("isAuthenticated", "true");
+
       toast({
         title: "Welcome back!",
         description: "Successfully logged into RentAssured.",
       });
+
       setLocation("/");
-    }, 800);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: error.message || "Invalid email or password.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -127,7 +151,7 @@ export default function Login() {
           </CardContent>
           <CardFooter className="flex justify-center border-t border-border/50 pt-6 pb-6">
             <p className="text-sm text-muted-foreground">
-              Don't have an account? <a href="#" className="text-primary font-medium hover:underline transition-all">Request access</a>
+              Don't have an account? <Link href="/register"><a className="text-primary font-medium hover:underline transition-all">Register</a></Link>
             </p>
           </CardFooter>
         </Card>
