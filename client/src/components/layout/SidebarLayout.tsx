@@ -9,7 +9,8 @@ import {
   MessageSquare, 
   Settings,
   Bell,
-  Search
+  Search,
+  Plus
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
@@ -28,43 +29,39 @@ const navigation = [
   { name: 'Properties', href: '/properties', icon: Building2 },
   { name: 'Tenants', href: '/tenants', icon: Users },
   { name: 'Documents', href: '/documents', icon: Files },
-  { name: 'Maintenance', href: '/maintenance', icon: Wrench },
   { name: 'Financials', href: '/financials', icon: CircleDollarSign },
-  { name: 'Messages', href: '/messages', icon: MessageSquare },
-  { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
 export function SidebarLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      {/* Sidebar */}
-      <div className="w-64 bg-sidebar border-r border-sidebar-border hidden md:flex flex-col z-10">
-        <div className="h-16 flex items-center px-6 border-b border-sidebar-border">
-          <div className="flex items-center gap-2 text-primary">
-            <Building2 className="w-6 h-6" />
-            <span className="font-display font-bold text-xl tracking-tight">RentAssured</span>
+    <div className="flex h-[100dvh] overflow-hidden bg-[#F2F2F7] dark:bg-black font-sans">
+      {/* Desktop Sidebar */}
+      <div className="w-72 bg-white dark:bg-[#1C1C1E] border-r border-black/5 dark:border-white/5 hidden md:flex flex-col z-10">
+        <div className="h-20 flex items-center px-8">
+          <div className="flex items-center gap-3 text-primary">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white shadow-lg shadow-primary/20">
+              <Building2 className="w-5 h-5" />
+            </div>
+            <span className="font-bold text-2xl tracking-tight text-black dark:text-white">RentAssured</span>
           </div>
         </div>
         
-        <div className="flex-1 overflow-y-auto py-6 px-4 space-y-1">
-          <div className="mb-4 px-2">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Main Menu</p>
-          </div>
+        <div className="flex-1 overflow-y-auto py-4 px-4 space-y-1">
           {navigation.map((item) => {
             const isActive = location === item.href;
             return (
               <Link key={item.name} href={item.href}>
                 <a 
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors ${
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                     isActive 
-                      ? 'bg-primary/10 text-primary font-medium' 
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                      ? 'bg-primary text-white shadow-md shadow-primary/20 font-semibold' 
+                      : 'text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 hover:text-foreground'
                   }`}
                   data-testid={`nav-${item.name.toLowerCase()}`}
                 >
-                  <item.icon className={`w-5 h-5 ${isActive ? 'text-primary' : ''}`} />
+                  <item.icon className={`w-5 h-5`} />
                   {item.name}
                 </a>
               </Link>
@@ -72,28 +69,28 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
           })}
         </div>
 
-        <div className="p-4 border-t border-sidebar-border">
+        <div className="p-6 border-t border-black/5 dark:border-white/5">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <div className="flex items-center gap-3 px-2 cursor-pointer hover:bg-muted/50 p-2 rounded-md transition-colors">
-                <Avatar className="h-9 w-9 border border-border">
+              <div className="flex items-center gap-3 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 p-3 rounded-2xl transition-all">
+                <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
                   <AvatarImage src="/src/assets/images/avatar_1.jpg" />
                   <AvatarFallback>JD</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col flex-1">
-                  <span className="text-sm font-medium leading-none">Jane Doe</span>
-                  <span className="text-xs text-muted-foreground mt-0.5">Admin</span>
+                  <span className="text-sm font-semibold leading-none">Jane Doe</span>
+                  <span className="text-xs text-muted-foreground mt-1">Property Manager</span>
                 </div>
               </div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>Profile Settings</DropdownMenuItem>
-              <DropdownMenuItem>Billing</DropdownMenuItem>
-              <DropdownMenuSeparator />
+            <DropdownMenuContent align="start" className="w-64 rounded-2xl p-2 shadow-2xl">
+              <DropdownMenuLabel className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator className="my-1" />
+              <DropdownMenuItem className="rounded-xl px-3 py-2 cursor-pointer">Profile Settings</DropdownMenuItem>
+              <DropdownMenuItem className="rounded-xl px-3 py-2 cursor-pointer">Security</DropdownMenuItem>
+              <DropdownMenuSeparator className="my-1" />
               <DropdownMenuItem 
-                className="text-destructive focus:text-destructive cursor-pointer"
+                className="text-destructive focus:text-destructive cursor-pointer rounded-xl px-3 py-2"
                 onClick={() => {
                   localStorage.removeItem("isAuthenticated");
                   window.location.href = "/login";
@@ -106,61 +103,87 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Top Header */}
-        <header className="h-16 bg-white/50 backdrop-blur-md border-b border-border flex items-center justify-between px-6 z-10 sticky top-0">
-          <div className="w-96 hidden sm:block">
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        {/* iOS style Header */}
+        <header className="h-14 md:h-20 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-black/5 dark:border-white/5 flex items-center justify-between px-6 z-10 sticky top-0 shrink-0">
+          <h2 className="text-lg md:text-2xl font-bold tracking-tight md:hidden">
+            {navigation.find(n => n.href === location)?.name || 'RentAssured'}
+          </h2>
+          
+          <div className="w-96 hidden md:block">
             <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input 
                 type="search" 
-                placeholder="Search properties, tenants..." 
-                className="pl-9 bg-muted/50 border-none focus-visible:ring-primary/20"
+                placeholder="Search..." 
+                className="pl-10 h-10 bg-black/5 dark:bg-white/5 border-none rounded-xl focus-visible:ring-primary/20"
               />
             </div>
           </div>
           
-          <div className="flex items-center gap-4">
-            <button className="relative p-2 text-muted-foreground hover:bg-muted rounded-full transition-colors">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-destructive rounded-full border-2 border-white"></span>
+          <div className="flex items-center gap-3">
+            <button className="p-2 text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-all">
+              <Plus className="w-5 h-5 md:w-6 md:h-6" />
             </button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Avatar className="h-8 w-8 md:hidden border border-border cursor-pointer">
-                  <AvatarImage src="/src/assets/images/avatar_1.jpg" />
-                  <AvatarFallback>JD</AvatarFallback>
-                </Avatar>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Jane Doe</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>Profile Settings</DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  className="text-destructive focus:text-destructive cursor-pointer"
-                  onClick={() => {
-                    localStorage.removeItem("isAuthenticated");
-                    window.location.href = "/login";
-                  }}
-                >
-                  Log out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <button className="relative p-2 text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-all">
+              <Bell className="w-5 h-5 md:w-6 md:h-6" />
+              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-black"></span>
+            </button>
           </div>
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-background flex flex-col">
-          <div className="max-w-7xl mx-auto flex-1 w-full">
+        <main className="flex-1 overflow-y-auto bg-[#F2F2F7] dark:bg-black pb-24 md:pb-8 flex flex-col">
+          <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-8 flex-1 w-full">
             {children}
           </div>
-          <footer className="mt-auto py-6 text-center text-sm text-muted-foreground border-t border-border/50">
-            <p>© {new Date().getFullYear()} RentAssured by kimara jamun</p>
+          <footer className="mt-auto py-8 text-center text-[10px] uppercase tracking-widest text-muted-foreground/50">
+            <p>© {new Date().getFullYear()} RentAssured • kimara jamun</p>
           </footer>
         </main>
+
+        {/* iOS Bottom Navigation Bar */}
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-white/90 dark:bg-[#1C1C1E]/90 backdrop-blur-2xl border-t border-black/5 dark:border-white/5 px-6 flex items-center justify-between pb-safe z-50">
+          {navigation.map((item) => {
+            const isActive = location === item.href;
+            return (
+              <Link key={item.name} href={item.href}>
+                <a 
+                  className={`flex flex-col items-center gap-1 transition-all ${
+                    isActive ? 'text-primary' : 'text-muted-foreground'
+                  }`}
+                  data-testid={`mobile-nav-${item.name.toLowerCase()}`}
+                >
+                  <item.icon className={`w-6 h-6 ${isActive ? 'fill-current opacity-20' : ''}`} />
+                  <span className="text-[10px] font-medium">{item.name}</span>
+                </a>
+              </Link>
+            );
+          })}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex flex-col items-center gap-1 text-muted-foreground">
+                <Avatar className="h-6 w-6 border border-black/5">
+                  <AvatarImage src="/src/assets/images/avatar_1.jpg" />
+                  <AvatarFallback>JD</AvatarFallback>
+                </Avatar>
+                <span className="text-[10px] font-medium">Profile</span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 rounded-2xl mb-2">
+              <DropdownMenuItem 
+                className="text-destructive font-medium rounded-xl"
+                onClick={() => {
+                  localStorage.removeItem("isAuthenticated");
+                  window.location.href = "/login";
+                }}
+              >
+                Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </nav>
       </div>
     </div>
   );
