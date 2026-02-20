@@ -8,6 +8,7 @@ import { SidebarLayout } from "./components/layout/SidebarLayout";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Tenants from "./pages/Tenants";
 
 function Router() {
   const [location, setLocation] = useLocation();
@@ -39,9 +40,7 @@ function Router() {
             <Route path="/properties">
               <div className="p-8"><h1 className="text-2xl font-bold">Properties</h1><p className="text-muted-foreground">Properties management coming soon.</p></div>
             </Route>
-            <Route path="/tenants">
-              <div className="p-8"><h1 className="text-2xl font-bold">Tenants</h1><p className="text-muted-foreground">Tenant management coming soon.</p></div>
-            </Route>
+            <Route path="/tenants" component={Tenants} />
             <Route path="/documents">
               <div className="p-8"><h1 className="text-2xl font-bold">Documents</h1><p className="text-muted-foreground">Document center coming soon.</p></div>
             </Route>
