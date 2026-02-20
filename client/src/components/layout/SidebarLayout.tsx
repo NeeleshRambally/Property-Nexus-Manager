@@ -44,7 +44,7 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
         <div className="h-16 flex items-center px-6 border-b border-sidebar-border">
           <div className="flex items-center gap-2 text-primary">
             <Building2 className="w-6 h-6" />
-            <span className="font-display font-bold text-xl tracking-tight">PropManage</span>
+            <span className="font-display font-bold text-xl tracking-tight">RentAssured</span>
           </div>
         </div>
         
@@ -153,10 +153,13 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-background">
-          <div className="max-w-7xl mx-auto">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-background flex flex-col">
+          <div className="max-w-7xl mx-auto flex-1 w-full">
             {children}
           </div>
+          <footer className="mt-auto py-6 text-center text-sm text-muted-foreground border-t border-border/50">
+            <p>© {new Date().getFullYear()} RentAssured by kimara jamun</p>
+          </footer>
         </main>
       </div>
     </div>

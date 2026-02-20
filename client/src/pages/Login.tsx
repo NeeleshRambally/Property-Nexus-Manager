@@ -34,7 +34,7 @@ export default function Login() {
       localStorage.setItem("isAuthenticated", "true");
       toast({
         title: "Welcome back!",
-        description: "Successfully logged into PropManage.",
+        description: "Successfully logged into RentAssured.",
       });
       setLocation("/");
     }, 800);
@@ -51,7 +51,7 @@ export default function Login() {
           <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center text-white mb-4 shadow-lg shadow-primary/20">
             <Building2 className="w-6 h-6" />
           </div>
-          <h1 className="text-3xl font-display font-bold tracking-tight">PropManage</h1>
+          <h1 className="text-3xl font-display font-bold tracking-tight">RentAssured</h1>
           <p className="text-muted-foreground mt-2">The modern operating system for landlords.</p>
         </div>
 
