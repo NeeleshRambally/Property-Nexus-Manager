@@ -1,7 +1,7 @@
 // API configuration
 const API_BASE_URL = import.meta.env.PROD
   ? 'https://rentassured-api-production.up.railway.app'
-  : '/api'; // Use Vite proxy in development
+  : ''; // Use Vite proxy in development (empty string because endpoints already include /api)
 
 export const apiClient = {
   async post(endpoint: string, data: any) {

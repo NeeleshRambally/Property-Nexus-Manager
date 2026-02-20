@@ -78,6 +78,7 @@ export default function Register() {
       // Store auth token and user info
       localStorage.setItem("authToken", data.token);
       localStorage.setItem("userEmail", data.email);
+      localStorage.setItem("landlordIdNumber", data.idNumber);
       localStorage.setItem("isAuthenticated", "true");
 
       toast({
