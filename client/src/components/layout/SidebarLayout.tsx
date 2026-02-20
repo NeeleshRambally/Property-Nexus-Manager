@@ -14,6 +14,15 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Properties', href: '/properties', icon: Building2 },
@@ -64,16 +73,36 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className="p-4 border-t border-sidebar-border">
-          <div className="flex items-center gap-3 px-2">
-            <Avatar className="h-9 w-9 border border-border">
-              <AvatarImage src="/src/assets/images/avatar_1.jpg" />
-              <AvatarFallback>JD</AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col">
-              <span className="text-sm font-medium leading-none">Jane Doe</span>
-              <span className="text-xs text-muted-foreground mt-0.5">Admin</span>
-            </div>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <div className="flex items-center gap-3 px-2 cursor-pointer hover:bg-muted/50 p-2 rounded-md transition-colors">
+                <Avatar className="h-9 w-9 border border-border">
+                  <AvatarImage src="/src/assets/images/avatar_1.jpg" />
+                  <AvatarFallback>JD</AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col flex-1">
+                  <span className="text-sm font-medium leading-none">Jane Doe</span>
+                  <span className="text-xs text-muted-foreground mt-0.5">Admin</span>
+                </div>
+              </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>Profile Settings</DropdownMenuItem>
+              <DropdownMenuItem>Billing</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                className="text-destructive focus:text-destructive cursor-pointer"
+                onClick={() => {
+                  localStorage.removeItem("isAuthenticated");
+                  window.location.href = "/login";
+                }}
+              >
+                Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -97,10 +126,29 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
               <Bell className="w-5 h-5" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-destructive rounded-full border-2 border-white"></span>
             </button>
-            <Avatar className="h-8 w-8 md:hidden border border-border">
-              <AvatarImage src="/src/assets/images/avatar_1.jpg" />
-              <AvatarFallback>JD</AvatarFallback>
-            </Avatar>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Avatar className="h-8 w-8 md:hidden border border-border cursor-pointer">
+                  <AvatarImage src="/src/assets/images/avatar_1.jpg" />
+                  <AvatarFallback>JD</AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Jane Doe</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>Profile Settings</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  className="text-destructive focus:text-destructive cursor-pointer"
+                  onClick={() => {
+                    localStorage.removeItem("isAuthenticated");
+                    window.location.href = "/login";
+                  }}
+                >
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
 
