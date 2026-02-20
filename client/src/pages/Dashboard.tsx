@@ -1,8 +1,8 @@
-import { 
-  Building2, 
-  Users, 
-  AlertCircle, 
-  Wrench, 
+import {
+  Building2,
+  Users,
+  AlertCircle,
+  Wrench,
   FileText,
   UserPlus,
   ArrowRight,
@@ -10,7 +10,8 @@ import {
   Eye,
   Upload,
   CheckCircle2,
-  FileCheck
+  FileCheck,
+  Plus
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
