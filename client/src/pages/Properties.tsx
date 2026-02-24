@@ -4,7 +4,7 @@ import { Building2, MapPin, Bed, Bath, Maximize, DollarSign } from "lucide-react
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AddPropertyModal } from "@/components/AddPropertyModal";
-import { apiClient } from "@/lib/api";
+import { apiClient, getApiUrl } from "@/lib/api";
 
 interface Property {
   id: string;
@@ -81,7 +81,7 @@ export default function Properties() {
                 <div className="relative h-48 bg-gradient-to-br from-primary/10 to-primary/5 overflow-hidden">
                   {property.images && property.images.length > 0 ? (
                     <img
-                      src={`/api/landlords/properties/${property.id}/images/${encodeURIComponent(property.images[0])}`}
+                      src={getApiUrl(`/api/landlords/properties/${property.id}/images/${encodeURIComponent(property.images[0])}`)}
                       alt={property.address}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />

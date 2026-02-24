@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { apiClient } from "@/lib/api";
+import { apiClient, getApiUrl } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 
 interface Property {
@@ -102,7 +102,7 @@ export default function PropertyDetail() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch(`/api/landlords/properties/${property.id}/images`, {
+      const response = await fetch(getApiUrl(`/api/landlords/properties/${property.id}/images`), {
         method: 'POST',
         body: formData,
       });
@@ -140,7 +140,7 @@ export default function PropertyDetail() {
     if (!confirm('Are you sure you want to delete this image?')) return;
 
     try {
-      const response = await fetch(`/api/landlords/properties/${property.id}/images/${encodeURIComponent(fileName)}`, {
+      const response = await fetch(getApiUrl(`/api/landlords/properties/${property.id}/images/${encodeURIComponent(fileName)}`), {
         method: 'DELETE',
       });
 
@@ -277,7 +277,7 @@ export default function PropertyDetail() {
                 return (
                   <div key={index} className="relative aspect-square rounded-2xl overflow-hidden bg-black/5 group">
                     <img
-                      src={`/api/landlords/properties/${property.id}/images/${encodeURIComponent(fileName)}`}
+                      src={getApiUrl(`/api/landlords/properties/${property.id}/images/${encodeURIComponent(fileName)}`)}
                       alt={`${property.address} - ${index + 1}`}
                       className="w-full h-full object-cover"
                     />

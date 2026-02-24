@@ -30,7 +30,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RequestScreeningModal } from "@/components/RequestScreeningModal";
-import { apiClient } from "@/lib/api";
+import { apiClient, getApiUrl } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 
@@ -209,7 +209,7 @@ export default function Dashboard() {
                       <div className="flex items-center gap-4">
                         {property.images && property.images.length > 0 ? (
                           <img
-                            src={`/api/landlords/properties/${property.id}/images/${encodeURIComponent(property.images[0])}`}
+                            src={getApiUrl(`/api/landlords/properties/${property.id}/images/${encodeURIComponent(property.images[0])}`)}
                             alt={property.address}
                             className="w-12 h-12 rounded-2xl object-cover shadow-sm"
                           />
