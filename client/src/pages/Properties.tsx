@@ -81,7 +81,7 @@ export default function Properties() {
                 <div className="relative h-48 bg-gradient-to-br from-primary/10 to-primary/5 overflow-hidden">
                   {property.images && property.images.length > 0 ? (
                     <img
-                      src={property.images[0]}
+                      src={`/api/landlords/properties/${property.id}/images/${encodeURIComponent(property.images[0])}`}
                       alt={property.address}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
@@ -91,8 +91,14 @@ export default function Properties() {
                     </div>
                   )}
                   <div className="absolute top-4 right-4">
-                    <Badge className="rounded-full shadow-lg">
-                      {property.propertyType || "Property"}
+                    <Badge className={`rounded-full shadow-lg ${
+                      property.status === "0" || property.status === 0 ? 'bg-orange-500 text-white hover:bg-orange-600' :
+                      property.status === "1" || property.status === 1 ? 'bg-emerald-500 text-white hover:bg-emerald-600' :
+                      'bg-gray-500 text-white hover:bg-gray-600'
+                    }`}>
+                      {property.status === "0" || property.status === 0 ? 'Vacant' :
+                       property.status === "1" || property.status === 1 ? 'Occupied' :
+                       property.status === "2" || property.status === 2 ? 'Unavailable' : 'Unknown'}
                     </Badge>
                   </div>
                 </div>

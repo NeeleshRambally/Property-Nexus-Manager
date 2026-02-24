@@ -1,9 +1,10 @@
 import React from "react";
 import { useRoute, useLocation } from "wouter";
-import { Building2, MapPin, Bed, Bath, Maximize, ArrowLeft, Plus, X, Camera } from "lucide-react";
+import { Building2, MapPin, Bed, Bath, Maximize, ArrowLeft, Plus, X, Camera, User, FileText, Mail, Phone } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
@@ -197,7 +198,15 @@ export default function PropertyDetail() {
             </div>
           )}
         </div>
-        <Badge className="rounded-full">{property.propertyType || "Property"}</Badge>
+        <Badge className={`rounded-full ${
+          property.status === "0" || property.status === 0 ? 'bg-orange-500 text-white hover:bg-orange-600' :
+          property.status === "1" || property.status === 1 ? 'bg-emerald-500 text-white hover:bg-emerald-600' :
+          'bg-gray-500 text-white hover:bg-gray-600'
+        }`}>
+          {property.status === "0" || property.status === 0 ? 'Vacant' :
+           property.status === "1" || property.status === 1 ? 'Occupied' :
+           property.status === "2" || property.status === 2 ? 'Unavailable' : 'Unknown'}
+        </Badge>
       </div>
 
       {/* Images Section */}
@@ -357,6 +366,89 @@ export default function PropertyDetail() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Current Tenant Section */}
+      <Card className="border-none shadow-[0_4px_24px_rgba(0,0,0,0.04)] bg-white dark:bg-[#1C1C1E] rounded-[32px] overflow-hidden">
+        <CardHeader className="px-6 py-5 border-b border-black/5 dark:border-white/5">
+          <CardTitle className="text-lg font-bold">Current Tenant</CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Avatar className="h-16 w-16 rounded-2xl">
+                <AvatarImage src="/src/assets/images/avatar_2.jpg" />
+                <AvatarFallback className="rounded-2xl bg-primary/10 text-primary font-bold text-lg">
+                  SM
+                </AvatarFallback>
+              </Avatar>
+              <div className="space-y-2">
+                <div>
+                  <h3 className="font-bold text-lg">Sarah Miller</h3>
+                  <p className="text-sm text-muted-foreground">Lease Start: Jan 1, 2024</p>
+                </div>
+                <div className="flex items-center gap-4 text-sm">
+                  <div className="flex items-center gap-1 text-muted-foreground">
+                    <Mail className="w-4 h-4" />
+                    <span>sarah.m@email.com</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-muted-foreground">
+                    <Phone className="w-4 h-4" />
+                    <span>+27 82 123 4567</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <Button className="rounded-full">
+              <FileText className="w-4 h-4 mr-2" />
+              View Documents
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Previous Tenants Section */}
+      <Card className="border-none shadow-[0_4px_24px_rgba(0,0,0,0.04)] bg-white dark:bg-[#1C1C1E] rounded-[32px] overflow-hidden">
+        <CardHeader className="px-6 py-5 border-b border-black/5 dark:border-white/5">
+          <CardTitle className="text-lg font-bold">Previous Tenants</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="divide-y divide-black/5 dark:divide-white/5">
+            {[
+              { name: "Robert Johnson", email: "robert.j@email.com", phone: "+27 81 234 5678", period: "Jan 2023 - Dec 2023", avatar: "RJ" },
+              { name: "Emily Davis", email: "emily.d@email.com", phone: "+27 83 345 6789", period: "Mar 2022 - Dec 2022", avatar: "ED" },
+              { name: "Michael Brown", email: "michael.b@email.com", phone: "+27 84 456 7890", period: "Jun 2021 - Feb 2022", avatar: "MB" }
+            ].map((tenant, index) => (
+              <div key={index} className="p-5 flex items-center justify-between hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-12 w-12 rounded-2xl">
+                    <AvatarFallback className="rounded-2xl bg-muted text-muted-foreground font-bold">
+                      {tenant.avatar}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h4 className="font-bold text-sm">{tenant.name}</h4>
+                    <p className="text-xs text-muted-foreground mb-1">{tenant.period}</p>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Mail className="w-3 h-3" />
+                        <span>{tenant.email}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Phone className="w-3 h-3" />
+                        <span>{tenant.phone}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm" className="rounded-full">
+                  <FileText className="w-4 h-4 mr-2" />
+                  View Documents
+                </Button>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -32,11 +32,46 @@ import { Label } from "@/components/ui/label";
 import { RequestScreeningModal } from "@/components/RequestScreeningModal";
 import { apiClient } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "wouter";
+
+interface Property {
+  id: string;
+  address: string;
+  city?: string;
+  province?: string;
+  postalCode?: string;
+  propertyType?: string;
+  numberOfBedrooms?: number;
+  numberOfBathrooms?: number;
+  squareMeters?: number;
+  monthlyRent?: number;
+  images: string[];
+  status: string;
+}
 
 export default function Dashboard() {
   const [vettingRequests, setVettingRequests] = React.useState<any[]>([]);
   const [isLoadingRequests, setIsLoadingRequests] = React.useState(true);
+  const [properties, setProperties] = React.useState<Property[]>([]);
+  const [isLoadingProperties, setIsLoadingProperties] = React.useState(true);
   const { toast } = useToast();
+
+  const fetchProperties = React.useCallback(async () => {
+    const landlordIdNumber = localStorage.getItem("landlordIdNumber");
+    if (!landlordIdNumber) return;
+
+    try {
+      const response = await apiClient.get(`/api/landlords/${landlordIdNumber}/properties`);
+      if (response.ok) {
+        const data = await response.json();
+        setProperties(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch properties:", error);
+    } finally {
+      setIsLoadingProperties(false);
+    }
+  }, []);
 
   const fetchVettingRequests = React.useCallback(async () => {
     const landlordIdNumber = localStorage.getItem("landlordIdNumber");
@@ -56,13 +91,19 @@ export default function Dashboard() {
   }, []);
 
   React.useEffect(() => {
+    fetchProperties();
     fetchVettingRequests();
 
-    // Listen for new vetting requests
+    // Listen for new vetting requests and properties
     const handleNewRequest = () => fetchVettingRequests();
+    const handleNewProperty = () => fetchProperties();
     window.addEventListener("vettingRequestCreated", handleNewRequest);
-    return () => window.removeEventListener("vettingRequestCreated", handleNewRequest);
-  }, [fetchVettingRequests]);
+    window.addEventListener("propertyCreated", handleNewProperty);
+    return () => {
+      window.removeEventListener("vettingRequestCreated", handleNewRequest);
+      window.removeEventListener("propertyCreated", handleNewProperty);
+    };
+  }, [fetchVettingRequests, fetchProperties]);
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
       <div className="flex items-end justify-between">
@@ -87,7 +128,7 @@ export default function Dashboard() {
             </div>
             <div className="space-y-0.5">
               <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Properties</p>
-              <p className="text-2xl font-bold tracking-tight">12</p>
+              <p className="text-2xl font-bold tracking-tight">{isLoadingProperties ? "-" : properties.length}</p>
             </div>
           </CardContent>
         </Card>
@@ -111,7 +152,12 @@ export default function Dashboard() {
             </div>
             <div className="space-y-0.5">
               <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Rent Due</p>
-              <p className="text-2xl font-bold tracking-tight text-[#FF3B30]">$4.2k</p>
+              <p className="text-2xl font-bold tracking-tight text-[#FF3B30]">
+                {isLoadingProperties ? "-" : `R ${properties
+                  .filter(p => p.status === "1" || p.status === 1)
+                  .reduce((sum, p) => sum + (p.monthlyRent || 0), 0)
+                  .toLocaleString()}`}
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -145,80 +191,66 @@ export default function Dashboard() {
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="divide-y divide-black/5 dark:divide-white/5">
-              {[
-                { address: "123 Horizon Ave, Apt 4B", status: "Occupied", tenants: 2, rent: "-", img: "/src/assets/images/property-1.jpg" },
-                { address: "789 Maple St, Unit 2", status: "Vacant", tenants: 0, rent: "-", img: null },
-                { address: "456 Oak Lane, Suite 1", status: "Occupied", tenants: 1, rent: "$1,250", alert: true }
-              ].map((prop, i) => (
-                <div key={i} className="px-6 py-5 flex items-center justify-between hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors group cursor-pointer active:bg-black/[0.05]">
-                  <div className="flex items-center gap-4">
-                    {prop.img ? (
-                      <img src={prop.img} alt="" className="w-12 h-12 rounded-2xl object-cover shadow-sm" />
-                    ) : (
-                      <div className="w-12 h-12 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] flex items-center justify-center text-muted-foreground">
-                        <Building2 className="w-6 h-6" />
+            {isLoadingProperties ? (
+              <div className="p-8 text-center text-muted-foreground">
+                <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-2" />
+                Loading properties...
+              </div>
+            ) : properties.length === 0 ? (
+              <div className="p-8 text-center text-muted-foreground">
+                <Building2 className="w-12 h-12 mx-auto mb-2 opacity-20" />
+                <p className="text-sm">No properties yet</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-black/5 dark:divide-white/5">
+                {properties.slice(0, 3).map((property) => (
+                  <Link key={property.id} href={`/properties/${property.id}`}>
+                    <div className="px-6 py-5 flex items-center justify-between hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors group cursor-pointer active:bg-black/[0.05]">
+                      <div className="flex items-center gap-4">
+                        {property.images && property.images.length > 0 ? (
+                          <img
+                            src={`/api/landlords/properties/${property.id}/images/${encodeURIComponent(property.images[0])}`}
+                            alt={property.address}
+                            className="w-12 h-12 rounded-2xl object-cover shadow-sm"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] flex items-center justify-center text-muted-foreground">
+                            <Building2 className="w-6 h-6" />
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-semibold text-sm leading-tight mb-1">{property.address}</p>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className={`text-[10px] font-bold px-2 py-0 border-none ${
+                              property.status === "0" || property.status === 0 ? 'bg-orange-50 text-orange-600 dark:bg-orange-500/10' :
+                              property.status === "1" || property.status === 1 ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10' :
+                              'bg-gray-50 text-gray-600 dark:bg-gray-500/10'
+                            }`}>
+                              {property.status === "0" || property.status === 0 ? 'Vacant' :
+                               property.status === "1" || property.status === 1 ? 'Occupied' :
+                               property.status === "2" || property.status === 2 ? 'Unavailable' : 'Unknown'}
+                            </Badge>
+                            {property.numberOfBedrooms && (
+                              <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
+                                {property.numberOfBedrooms} Bed{property.numberOfBedrooms > 1 ? 's' : ''}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    )}
-                    <div>
-                      <p className="font-semibold text-sm leading-tight mb-1">{prop.address}</p>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className={`text-[10px] font-bold px-2 py-0 border-none ${
-                          prop.status === 'Occupied' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10' : 'bg-orange-50 text-orange-600 dark:bg-orange-500/10'
-                        }`}>
-                          {prop.status}
-                        </Badge>
-                        <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">{prop.tenants} Tenants</span>
+                      <div className="flex items-center gap-3">
+                        {property.monthlyRent && (
+                          <span className="text-xs font-bold text-primary">R {property.monthlyRent.toLocaleString()}</span>
+                        )}
+                        <div className="w-8 h-8 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                          <ArrowRight className="w-4 h-4" />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {prop.alert && <span className="text-xs font-bold text-[#FF3B30]">{prop.rent}</span>}
-                    {prop.status === 'Vacant' ? (
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button size="sm" className="h-8 rounded-full bg-primary text-white text-xs font-bold px-4" data-testid={`btn-screen-${i}`}>
-                            Screen
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="rounded-[32px] border-none shadow-2xl sm:max-w-md p-8">
-                          <DialogHeader className="space-y-2">
-                            <DialogTitle className="text-2xl font-bold tracking-tight">Vetting Request</DialogTitle>
-                            <DialogDescription className="text-sm">
-                              Initiate tenant screening for {prop.address}
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="space-y-4 py-4">
-                            <div className="space-y-1.5">
-                              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Applicant Details</Label>
-                              <Input placeholder="Full Name" className="h-12 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] border-none px-4" />
-                              <Input placeholder="Email Address" className="h-12 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] border-none px-4 mt-2" />
-                            </div>
-                            <div className="grid grid-cols-2 gap-3 pt-2">
-                              <div className="p-4 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] flex flex-col items-center justify-center gap-2">
-                                <FileCheck className="w-5 h-5 text-primary" />
-                                <span className="text-[10px] font-bold uppercase">Credit</span>
-                              </div>
-                              <div className="p-4 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] flex flex-col items-center justify-center gap-2">
-                                <Users className="w-5 h-5 text-primary" />
-                                <span className="text-[10px] font-bold uppercase">Criminal</span>
-                              </div>
-                            </div>
-                          </div>
-                          <DialogFooter>
-                            <Button className="w-full h-14 rounded-2xl text-base font-bold shadow-xl shadow-primary/20">Send Application</Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                        <ArrowRight className="w-4 h-4" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
