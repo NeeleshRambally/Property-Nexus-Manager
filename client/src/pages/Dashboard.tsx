@@ -262,8 +262,8 @@ export default function Dashboard() {
           <CardContent className="p-0">
             <div className="divide-y divide-black/5 dark:divide-white/5">
               {[
-                { name: "Sarah Miller", unit: "123 Horizon Ave, 4B", img: "/src/assets/images/avatar_2.jpg" },
-                { name: "Robert Johnson", unit: "456 Oak Lane, Ste 1", img: "/src/assets/images/avatar_3.jpg" }
+                { name: "Sarah Miller", unit: "123 Horizon Ave, 4B", img: "/assets/images/avatar_2.jpg" },
+                { name: "Robert Johnson", unit: "456 Oak Lane, Ste 1", img: "/assets/images/avatar_3.jpg" }
               ].map((tenant, i) => (
                 <div key={i} className="p-5 flex items-center justify-between group active:bg-black/[0.02] transition-colors">
                   <div className="flex items-center gap-3">

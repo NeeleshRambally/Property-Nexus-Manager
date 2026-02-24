@@ -81,7 +81,7 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
             <DropdownMenuTrigger asChild>
               <div className="flex items-center gap-3 cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 p-3 rounded-2xl transition-all">
                 <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
-                  <AvatarImage src="/src/assets/images/avatar_1.jpg" />
+                  <AvatarImage src="/assets/images/avatar_1.jpg" />
                   <AvatarFallback>{userEmail ? userEmail.substring(0, 2).toUpperCase() : "LL"}</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col flex-1">
@@ -174,7 +174,7 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
             <DropdownMenuTrigger asChild>
               <button className="flex flex-col items-center gap-1 text-muted-foreground">
                 <Avatar className="h-6 w-6 border border-black/5">
-                  <AvatarImage src="/src/assets/images/avatar_1.jpg" />
+                  <AvatarImage src="/assets/images/avatar_1.jpg" />
                   <AvatarFallback>JD</AvatarFallback>
                 </Avatar>
                 <span className="text-[10px] font-medium">Profile</span>

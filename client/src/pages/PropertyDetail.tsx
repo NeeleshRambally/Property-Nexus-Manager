@@ -376,7 +376,7 @@ export default function PropertyDetail() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16 rounded-2xl flex-shrink-0">
-                <AvatarImage src="/src/assets/images/avatar_2.jpg" />
+                <AvatarImage src="/assets/images/avatar_2.jpg" />
                 <AvatarFallback className="rounded-2xl bg-primary/10 text-primary font-bold text-lg">
                   SM
                 </AvatarFallback>
