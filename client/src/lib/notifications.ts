@@ -1,4 +1,21 @@
 // Push notification utilities
+import { getApiUrl } from './api';
+
+// Helper to convert VAPID public key to Uint8Array
+function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/-/g, '+')
+    .replace(/_/g, '/');
+
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
 
 export async function requestNotificationPermission(): Promise<NotificationPermission> {
   if (!('Notification' in window)) {
@@ -36,18 +53,18 @@ export async function subscribeToPushNotifications(): Promise<PushSubscription |
       return subscription;
     }
 
-    // Subscribe to push notifications
-    // Note: For production, you'll need to generate VAPID keys
-    // For now, this creates a subscription without a server key
+    // Subscribe to push notifications with VAPID public key
+    const vapidPublicKey = 'BNc72Bo0wXVZzlQzjcHBErK0gWEz4T37Bx6e99U8OvidV3WmsxRJjPPTL40S_fT-sdSOikATZ0ia1ByFQgkso5Y';
+
     subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: null // You'll need to add VAPID public key here later
+      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
     });
 
     console.log('Subscribed to push notifications:', subscription);
 
-    // TODO: Send subscription to your backend to store it
-    // await sendSubscriptionToBackend(subscription);
+    // Send subscription to backend to store it
+    await sendSubscriptionToBackend(subscription);
 
     return subscription;
   } catch (error) {
@@ -111,14 +128,39 @@ export async function showLocalNotification(title: string, options?: Notificatio
   }
 }
 
-// Helper to send subscription to backend (implement based on your API)
+// Helper to send subscription to backend
 async function sendSubscriptionToBackend(subscription: PushSubscription) {
-  // TODO: Implement API call to send subscription to backend
-  // const landlordIdNumber = localStorage.getItem('landlordIdNumber');
-  // await fetch('/api/notifications/subscribe', {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify({ landlordIdNumber, subscription })
-  // });
-  console.log('Subscription ready to be sent to backend:', subscription.toJSON());
+  try {
+    const landlordIdNumber = localStorage.getItem('landlordIdNumber');
+
+    if (!landlordIdNumber) {
+      console.warn('No landlord ID found, skipping subscription');
+      return;
+    }
+
+    const subscriptionData = subscription.toJSON();
+
+    const response = await fetch(getApiUrl('/api/notifications/subscribe'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        landlordIdNumber,
+        subscription: {
+          endpoint: subscriptionData.endpoint,
+          keys: {
+            p256dh: subscriptionData.keys?.p256dh,
+            auth: subscriptionData.keys?.auth
+          }
+        }
+      })
+    });
+
+    if (response.ok) {
+      console.log('Subscription saved to backend successfully');
+    } else {
+      console.error('Failed to save subscription to backend:', await response.text());
+    }
+  } catch (error) {
+    console.error('Error sending subscription to backend:', error);
+  }
 }

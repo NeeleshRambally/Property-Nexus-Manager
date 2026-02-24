@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Push Notifications</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    button {
+      background: #0066cc;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px 5px;
+    }
+    button:hover {
+      background: #0052a3;
+    }
+    .output {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f5f5f5;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔔 Push Notification Tester</h1>
+  <p>Use these buttons to test push notifications locally:</p>
+
+  <button onclick="requestPermission()">1. Request Permission</button>
+  <button onclick="showLocalNotification()">2. Show Local Notification</button>
+  <button onclick="testPushNotification()">3. Test Push Notification</button>
+
+  <div class="output" id="output">Ready to test...</div>
+
+  <script>
+    const log = (msg) => {
+      const output = document.getElementById('output');
+      output.innerHTML = `${new Date().toLocaleTimeString()}: ${msg}<br>` + output.innerHTML;
+      console.log(msg);
+    };
+
+    async function requestPermission() {
+      try {
+        const permission = await Notification.requestPermission();
+        log(`Permission: ${permission}`);
+        if (permission === 'granted') {
+          log('✅ Permission granted! You can now receive notifications.');
+        } else {
+          log('❌ Permission denied. Please allow notifications in browser settings.');
+        }
+      } catch (error) {
+        log(`Error: ${error.message}`);
+      }
+    }
+
+    async function showLocalNotification() {
+      try {
+        if (Notification.permission !== 'granted') {
+          log('⚠️ Permission not granted. Click "Request Permission" first.');
+          return;
+        }
+
+        if ('serviceWorker' in navigator) {
+          const registration = await navigator.serviceWorker.ready;
+          await registration.showNotification('Test Notification', {
+            body: 'This is a local test notification from RentAssured',
+            icon: '/favicon.png',
+            badge: '/favicon.png',
+            vibrate: [200, 100, 200],
+            data: { url: '/' }
+          });
+          log('✅ Local notification shown!');
+        } else {
+          new Notification('Test Notification', {
+            body: 'This is a test notification',
+            icon: '/favicon.png'
+          });
+          log('✅ Notification shown (no service worker)');
+        }
+      } catch (error) {
+        log(`Error: ${error.message}`);
+      }
+    }
+
+    async function testPushNotification() {
+      try {
+        if (!('serviceWorker' in navigator)) {
+          log('❌ Service Worker not supported');
+          return;
+        }
+
+        const registration = await navigator.serviceWorker.ready;
+
+        // Check if subscribed
+        let subscription = await registration.pushManager.getSubscription();
+
+        if (!subscription) {
+          log('⚠️ Not subscribed to push. Subscribing now...');
+          subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: null
+          });
+          log('✅ Subscribed to push!');
+        }
+
+        log('📱 Subscription endpoint: ' + subscription.endpoint);
+        log('⚠️ To test push notifications, use Chrome DevTools:');
+        log('1. Open DevTools → Application → Service Workers');
+        log('2. Find "Push" section');
+        log('3. Enter message and click "Push"');
+
+      } catch (error) {
+        log(`Error: ${error.message}`);
+      }
+    }
+
+    // Auto-check permission on load
+    window.addEventListener('load', () => {
+      log(`Current permission: ${Notification.permission}`);
+      if ('serviceWorker' in navigator) {
+        log('✅ Service Worker supported');
+      }
+      if ('PushManager' in window) {
+        log('✅ Push notifications supported');
+      }
+    });
+  </script>
+</body>
+</html>
