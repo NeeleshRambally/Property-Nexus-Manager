@@ -377,26 +377,26 @@ export default function Dashboard() {
             <div className="max-h-[400px] overflow-y-auto">
               <div className="divide-y divide-black/5 dark:divide-white/5">
                 {vettingRequests.map((request) => (
-                  <div key={request.id} className="p-5 flex items-center justify-between group hover:bg-black/[0.02] transition-colors">
-                    <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div>
+                  <div key={request.id} className="p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4 group hover:bg-black/[0.02] transition-colors">
+                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                      <div className="min-w-0">
                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Reference</p>
-                        <p className="text-sm font-bold">{request.uniqueReference}</p>
+                        <p className="text-sm font-bold truncate">{request.uniqueReference}</p>
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Email</p>
                         <p className="text-sm font-medium truncate">{request.tenantEmail}</p>
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Tenant ID</p>
-                        <p className="text-sm font-medium">{request.tenantIdNumber}</p>
+                        <p className="text-sm font-medium truncate">{request.tenantIdNumber}</p>
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Request Date</p>
                         <p className="text-sm font-medium">{new Date(request.requestDate).toLocaleDateString()}</p>
                       </div>
                     </div>
-                    <div className="ml-4">
+                    <div className="flex justify-end md:ml-4">
                       <Badge
                         variant={request.status === "Completed" ? "default" : "secondary"}
                         className="rounded-full"

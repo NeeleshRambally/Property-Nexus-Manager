@@ -1,8 +1,7 @@
-const CACHE_NAME = 'property-nexus-v1';
+const CACHE_NAME = 'property-nexus-v2';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/src/main.tsx',
   '/favicon.png'
 ];
 
@@ -18,6 +17,7 @@ self.addEventListener('install', (event) => {
         console.log('Cache install failed:', error);
       })
   );
+  // Force the waiting service worker to become the active service worker
   self.skipWaiting();
 });
 
@@ -35,10 +35,11 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
+  // Take control of all pages immediately
   self.clients.claim();
 });
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - network first for HTML/JS, cache first for assets
 self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (event.request.method !== 'GET') {
@@ -50,36 +51,53 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Cache hit - return response
+  const url = new URL(event.request.url);
+
+  // Network-first strategy for HTML, JS, and API calls
+  if (
+    event.request.url.includes('/api/') ||
+    url.pathname.endsWith('.html') ||
+    url.pathname.endsWith('.js') ||
+    url.pathname.endsWith('.tsx') ||
+    url.pathname === '/'
+  ) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // Clone and cache the response
+          if (response && response.status === 200) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          // Network failed, try cache
+          return caches.match(event.request).then((response) => {
+            return response || caches.match('/index.html');
+          });
+        })
+    );
+  } else {
+    // Cache-first strategy for images and other assets
+    event.respondWith(
+      caches.match(event.request).then((response) => {
         if (response) {
           return response;
         }
 
-        // Clone the request
-        const fetchRequest = event.request.clone();
-
-        return fetch(fetchRequest).then((response) => {
-          // Check if valid response
-          if (!response || response.status !== 200 || response.type !== 'basic') {
-            return response;
-          }
-
-          // Clone the response
-          const responseToCache = response.clone();
-
-          caches.open(CACHE_NAME)
-            .then((cache) => {
+        return fetch(event.request).then((response) => {
+          if (response && response.status === 200) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
               cache.put(event.request, responseToCache);
             });
-
+          }
           return response;
-        }).catch(() => {
-          // Network request failed, try to serve offline page if available
-          return caches.match('/index.html');
         });
       })
-  );
+    );
+  }
 });
