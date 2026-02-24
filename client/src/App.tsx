@@ -9,6 +9,8 @@ import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Tenants from "./pages/Tenants";
+import Properties from "./pages/Properties";
+import PropertyDetail from "./pages/PropertyDetail";
 
 function Router() {
   const [location, setLocation] = useLocation();
@@ -37,9 +39,8 @@ function Router() {
         <SidebarLayout>
           <Switch>
             <Route path="/" component={Dashboard} />
-            <Route path="/properties">
-              <div className="p-8"><h1 className="text-2xl font-bold">Properties</h1><p className="text-muted-foreground">Properties management coming soon.</p></div>
-            </Route>
+            <Route path="/properties" component={Properties} />
+            <Route path="/properties/:id" component={PropertyDetail} />
             <Route path="/tenants" component={Tenants} />
             <Route path="/documents">
               <div className="p-8"><h1 className="text-2xl font-bold">Documents</h1><p className="text-muted-foreground">Document center coming soon.</p></div>
