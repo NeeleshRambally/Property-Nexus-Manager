@@ -75,7 +75,7 @@ export function AddPropertyModal({ children }: AddPropertyModalProps) {
     setIsLoading(true);
 
     try {
-      const response = await apiClient.post("/api/properties", {
+      const response = await apiClient.post(`/api/landlords/${landlordIdNumber}/properties`, {
         address: formData.address,
         city: formData.city || undefined,
         province: formData.province || undefined,

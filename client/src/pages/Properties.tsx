@@ -30,7 +30,7 @@ export default function Properties() {
     if (!landlordIdNumber) return;
 
     try {
-      const response = await apiClient.get(`/api/properties/landlord/${landlordIdNumber}`);
+      const response = await apiClient.get(`/api/landlords/${landlordIdNumber}/properties`);
       if (response.ok) {
         const data = await response.json();
         setProperties(data);
