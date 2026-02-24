@@ -1,16 +1,13 @@
 import React from "react";
 import { useRoute, useLocation } from "wouter";
-import { Building2, MapPin, Bed, Bath, Maximize, DollarSign, ArrowLeft, Edit, Plus, X } from "lucide-react";
+import { Building2, MapPin, Bed, Bath, Maximize, ArrowLeft, Plus, X, Camera } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -41,8 +38,10 @@ export default function PropertyDetail() {
   const { toast } = useToast();
   const [property, setProperty] = React.useState<Property | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
-  const [newImageUrl, setNewImageUrl] = React.useState("");
-  const [isAddingImage, setIsAddingImage] = React.useState(false);
+  const [imageUrls, setImageUrls] = React.useState<string[]>([]);
+  const [isUploadingImage, setIsUploadingImage] = React.useState(false);
+  const [uploadDialogOpen, setUploadDialogOpen] = React.useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const fetchProperty = React.useCallback(async () => {
     if (!params?.id) return;
@@ -72,46 +71,94 @@ export default function PropertyDetail() {
     }
   }, [params?.id, toast, setLocation]);
 
-  React.useEffect(() => {
-    fetchProperty();
-  }, [fetchProperty]);
+  const fetchImageUrls = React.useCallback(async () => {
+    if (!params?.id) return;
 
-  const handleAddImage = async () => {
-    if (!newImageUrl || !property) return;
-
-    setIsAddingImage(true);
     try {
-      const updatedImages = [...property.images, newImageUrl];
-
-      const response = await apiClient.put(`/api/properties/${property.id}`, {
-        address: property.address,
-        city: property.city,
-        province: property.province,
-        postalCode: property.postalCode,
-        propertyType: property.propertyType,
-        numberOfBedrooms: property.numberOfBedrooms,
-        numberOfBathrooms: property.numberOfBathrooms,
-        squareMeters: property.squareMeters,
-        monthlyRent: property.monthlyRent,
-      });
-
+      const response = await apiClient.get(`/api/landlords/properties/${params.id}/images`);
       if (response.ok) {
-        // For now, just update local state. Backend needs images field in update
-        setProperty({...property, images: updatedImages});
-        setNewImageUrl("");
-        toast({
-          title: "Success",
-          description: "Image URL added. Note: Full image upload coming soon!",
-        });
+        const urls = await response.json();
+        setImageUrls(urls);
       }
     } catch (error) {
+      console.error("Failed to fetch image URLs:", error);
+    }
+  }, [params?.id]);
+
+  React.useEffect(() => {
+    fetchProperty();
+    fetchImageUrls();
+  }, [fetchProperty, fetchImageUrls]);
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0 || !property) return;
+
+    setIsUploadingImage(true);
+
+    try {
+      const file = files[0];
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch(`/api/landlords/properties/${property.id}/images`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to upload image');
+      }
+
+      toast({
+        title: "Success",
+        description: "Image uploaded successfully!",
+      });
+
+      await fetchImageUrls();
+      setUploadDialogOpen(false);
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to add image.",
+        title: "Upload Failed",
+        description: error.message || "Could not upload image.",
       });
     } finally {
-      setIsAddingImage(false);
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleDeleteImage = async (fileName: string) => {
+    if (!property) return;
+
+    if (!confirm('Are you sure you want to delete this image?')) return;
+
+    try {
+      const response = await fetch(`/api/landlords/properties/${property.id}/images/${encodeURIComponent(fileName)}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete image');
+      }
+
+      toast({
+        title: "Success",
+        description: "Image deleted successfully!",
+      });
+
+      await fetchImageUrls();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Delete Failed",
+        description: error.message || "Could not delete image.",
+      });
     }
   };
 
@@ -158,58 +205,90 @@ export default function PropertyDetail() {
         <CardHeader className="px-6 py-5 border-b border-black/5 dark:border-white/5">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-bold">Property Images</CardTitle>
-            <Dialog>
+            <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
               <DialogTrigger asChild>
                 <Button size="sm" className="rounded-full">
                   <Plus className="w-4 h-4 mr-2" />
-                  Add Image URL
+                  Upload Image
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Add Image URL</DialogTitle>
+                  <DialogTitle>Upload Property Image</DialogTitle>
                   <DialogDescription>
-                    Enter the URL of an image to add to this property.
+                    Select an image from your device or take a photo
                   </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="imageUrl">Image URL</Label>
-                    <Input
-                      id="imageUrl"
-                      placeholder="https://example.com/image.jpg"
-                      value={newImageUrl}
-                      onChange={(e) => setNewImageUrl(e.target.value)}
-                    />
-                  </div>
+                <div className="py-6">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    id="property-image-upload"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                    disabled={isUploadingImage}
+                  />
+                  <label
+                    htmlFor="property-image-upload"
+                    className={`flex flex-col items-center justify-center w-full px-4 py-8 border-2 border-dashed rounded-2xl cursor-pointer transition-colors ${
+                      isUploadingImage
+                        ? 'border-gray-200 bg-gray-50 cursor-not-allowed'
+                        : 'border-gray-300 hover:border-primary hover:bg-primary/5'
+                    }`}
+                  >
+                    {isUploadingImage ? (
+                      <>
+                        <div className="w-12 h-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-4" />
+                        <span className="text-sm text-gray-600">Uploading...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Camera className="w-12 h-12 text-gray-400 mb-4" />
+                        <span className="text-sm font-medium text-gray-900 mb-1">
+                          Click to upload or take a photo
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          PNG, JPG, WEBP up to 10MB
+                        </span>
+                      </>
+                    )}
+                  </label>
                 </div>
-                <DialogFooter>
-                  <Button onClick={handleAddImage} disabled={isAddingImage || !newImageUrl}>
-                    {isAddingImage ? "Adding..." : "Add Image"}
-                  </Button>
-                </DialogFooter>
               </DialogContent>
             </Dialog>
           </div>
         </CardHeader>
         <CardContent className="p-6">
-          {property.images && property.images.length > 0 ? (
+          {imageUrls && imageUrls.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {property.images.map((imageUrl, index) => (
-                <div key={index} className="relative aspect-square rounded-2xl overflow-hidden bg-black/5 group">
-                  <img
-                    src={imageUrl}
-                    alt={`${property.address} - ${index + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              ))}
+              {imageUrls.map((imageUrl, index) => {
+                const fileName = imageUrl.split('/').pop() || `image-${index}`;
+                return (
+                  <div key={index} className="relative aspect-square rounded-2xl overflow-hidden bg-black/5 group">
+                    <img
+                      src={`/api/landlords/properties/${property.id}/images/${encodeURIComponent(fileName)}`}
+                      alt={`${property.address} - ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                      <button
+                        onClick={() => handleDeleteImage(fileName)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity bg-red-500 hover:bg-red-600 text-white p-2 rounded-full"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div className="p-12 text-center text-muted-foreground">
               <Building2 className="w-16 h-16 mx-auto mb-4 opacity-20" />
               <p className="text-sm">No images yet</p>
-              <p className="text-xs mt-1">Click "Add Image URL" to add photos</p>
+              <p className="text-xs mt-1">Click "Upload Image" to add photos</p>
             </div>
           )}
         </CardContent>
