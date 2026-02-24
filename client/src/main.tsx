@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
+import { requestNotificationPermission, subscribeToPushNotifications } from "./lib/notifications";
 
 createRoot(document.getElementById("root")!).render(<App />);
 
@@ -31,6 +32,14 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
             });
           }
         });
+
+        // Request notification permission and subscribe after service worker is ready
+        setTimeout(async () => {
+          const permission = await requestNotificationPermission();
+          if (permission === 'granted') {
+            await subscribeToPushNotifications();
+          }
+        }, 2000); // Wait 2 seconds after app loads to avoid overwhelming user
       })
       .catch((error) => {
         console.log('Service Worker registration failed:', error);
