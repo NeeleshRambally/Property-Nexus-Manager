@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { apiClient, getApiUrl } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { EditPropertyModal } from "@/components/EditPropertyModal";
 
 interface Property {
   id: string;
@@ -27,8 +28,9 @@ interface Property {
   numberOfBathrooms?: number;
   squareMeters?: number;
   monthlyRent?: number;
+  description?: string;
   images: string[];
-  status: string;
+  status: string | number;
   createdAt: string;
   updatedAt: string;
 }
@@ -198,15 +200,18 @@ export default function PropertyDetail() {
             </div>
           )}
         </div>
-        <Badge className={`rounded-full ${
-          property.status === "0" || property.status === 0 ? 'bg-orange-500 text-white hover:bg-orange-600' :
-          property.status === "1" || property.status === 1 ? 'bg-emerald-500 text-white hover:bg-emerald-600' :
-          'bg-gray-500 text-white hover:bg-gray-600'
-        }`}>
-          {property.status === "0" || property.status === 0 ? 'Vacant' :
-           property.status === "1" || property.status === 1 ? 'Occupied' :
-           property.status === "2" || property.status === 2 ? 'Unavailable' : 'Unknown'}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <EditPropertyModal property={property} onPropertyUpdated={fetchProperty} />
+          <Badge className={`rounded-full ${
+            property.status === "0" || property.status === 0 ? 'bg-orange-500 text-white hover:bg-orange-600' :
+            property.status === "1" || property.status === 1 ? 'bg-emerald-500 text-white hover:bg-emerald-600' :
+            'bg-gray-500 text-white hover:bg-gray-600'
+          }`}>
+            {property.status === "0" || property.status === 0 ? 'Vacant' :
+             property.status === "1" || property.status === 1 ? 'Occupied' :
+             property.status === "2" || property.status === 2 ? 'Unavailable' : 'Unknown'}
+          </Badge>
+        </div>
       </div>
 
       {/* Images Section */}
@@ -302,6 +307,18 @@ export default function PropertyDetail() {
           )}
         </CardContent>
       </Card>
+
+      {/* Description */}
+      {property.description && (
+        <Card className="border-none shadow-[0_4px_24px_rgba(0,0,0,0.04)] bg-white dark:bg-[#1C1C1E] rounded-[32px]">
+          <CardHeader className="px-6 py-5 border-b border-black/5 dark:border-white/5">
+            <CardTitle className="text-lg font-bold">Description</CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{property.description}</p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Property Details */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -45,8 +45,9 @@ interface Property {
   numberOfBathrooms?: number;
   squareMeters?: number;
   monthlyRent?: number;
+  description?: string;
   images: string[];
-  status: string;
+  status: string | number;
 }
 
 export default function Dashboard() {
@@ -185,9 +186,11 @@ export default function Dashboard() {
                 <CardTitle className="text-lg font-bold">Properties</CardTitle>
                 <CardDescription className="text-xs">Manage your portfolio units</CardDescription>
               </div>
-              <Button variant="ghost" className="text-primary text-sm font-semibold hover:bg-primary/5 rounded-full px-4">
-                See All
-              </Button>
+              <Link href="/properties">
+                <Button variant="ghost" className="text-primary text-sm font-semibold hover:bg-primary/5 rounded-full px-4">
+                  See All
+                </Button>
+              </Link>
             </div>
           </CardHeader>
           <CardContent className="p-0">

@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiClient } from "@/lib/api";
-import { Plus, Building2, MapPin, Home } from "lucide-react";
+import { Pencil, Building2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -23,26 +23,60 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-interface AddPropertyModalProps {
+interface Property {
+  id: string;
+  address: string;
+  city?: string;
+  province?: string;
+  postalCode?: string;
+  propertyType?: string;
+  numberOfBedrooms?: number;
+  numberOfBathrooms?: number;
+  squareMeters?: number;
+  monthlyRent?: number;
+  description?: string;
+}
+
+interface EditPropertyModalProps {
+  property: Property;
+  onPropertyUpdated?: () => void;
   children?: React.ReactNode;
 }
 
-export function AddPropertyModal({ children }: AddPropertyModalProps) {
+export function EditPropertyModal({ property, onPropertyUpdated, children }: EditPropertyModalProps) {
   const [open, setOpen] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const { toast } = useToast();
   const [formData, setFormData] = React.useState({
-    address: "",
-    city: "",
-    province: "",
-    postalCode: "",
-    propertyType: "",
-    numberOfBedrooms: "",
-    numberOfBathrooms: "",
-    squareMeters: "",
-    monthlyRent: "",
-    description: "",
+    address: property.address || "",
+    city: property.city || "",
+    province: property.province || "",
+    postalCode: property.postalCode || "",
+    propertyType: property.propertyType || "",
+    numberOfBedrooms: property.numberOfBedrooms?.toString() || "",
+    numberOfBathrooms: property.numberOfBathrooms?.toString() || "",
+    squareMeters: property.squareMeters?.toString() || "",
+    monthlyRent: property.monthlyRent?.toString() || "",
+    description: property.description || "",
   });
+
+  // Reset form data when property changes or modal opens
+  React.useEffect(() => {
+    if (open) {
+      setFormData({
+        address: property.address || "",
+        city: property.city || "",
+        province: property.province || "",
+        postalCode: property.postalCode || "",
+        propertyType: property.propertyType || "",
+        numberOfBedrooms: property.numberOfBedrooms?.toString() || "",
+        numberOfBathrooms: property.numberOfBathrooms?.toString() || "",
+        squareMeters: property.squareMeters?.toString() || "",
+        monthlyRent: property.monthlyRent?.toString() || "",
+        description: property.description || "",
+      });
+    }
+  }, [property, open]);
 
   const handleChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({ ...prev, [field]: e.target.value }));
@@ -64,7 +98,7 @@ export function AddPropertyModal({ children }: AddPropertyModalProps) {
       return;
     }
 
-    const landlordIdNumber = localStorage.getItem("landlordIdNumber");
+    const landlordIdNumber = localStorage.getItem('landlordIdNumber');
     if (!landlordIdNumber) {
       toast({
         variant: "destructive",
@@ -77,7 +111,7 @@ export function AddPropertyModal({ children }: AddPropertyModalProps) {
     setIsLoading(true);
 
     try {
-      const response = await apiClient.post(`/api/landlords/${landlordIdNumber}/properties`, {
+      const response = await apiClient.post(`/api/landlords/${landlordIdNumber}/properties/${property.id}`, {
         address: formData.address,
         city: formData.city || undefined,
         province: formData.province || undefined,
@@ -93,36 +127,25 @@ export function AddPropertyModal({ children }: AddPropertyModalProps) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || data.message || "Failed to create property");
+        throw new Error(data.error || data.message || "Failed to update property");
       }
 
       toast({
         title: "Success!",
-        description: "Property added successfully.",
+        description: "Property updated successfully.",
       });
 
-      // Reset form and close modal
-      setFormData({
-        address: "",
-        city: "",
-        province: "",
-        postalCode: "",
-        propertyType: "",
-        numberOfBedrooms: "",
-        numberOfBathrooms: "",
-        squareMeters: "",
-        monthlyRent: "",
-        description: "",
-      });
       setOpen(false);
 
-      // Trigger a refresh of the properties list
-      window.dispatchEvent(new Event("propertyCreated"));
+      // Notify parent component
+      if (onPropertyUpdated) {
+        onPropertyUpdated();
+      }
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Failed",
-        description: error.message || "Could not create property.",
+        description: error.message || "Could not update property.",
       });
     } finally {
       setIsLoading(false);
@@ -133,16 +156,17 @@ export function AddPropertyModal({ children }: AddPropertyModalProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {children || (
-          <Button size="icon" className="rounded-full shadow-md">
-            <Plus className="w-5 h-5" />
+          <Button variant="outline" size="sm">
+            <Pencil className="w-4 h-4 mr-2" />
+            Edit Property
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add New Property</DialogTitle>
+          <DialogTitle>Edit Property</DialogTitle>
           <DialogDescription>
-            Add a property to your portfolio. Fill in the details below.
+            Update the property details below.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -152,17 +176,13 @@ export function AddPropertyModal({ children }: AddPropertyModalProps) {
               <Label htmlFor="address">
                 Address <span className="text-destructive">*</span>
               </Label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="address"
-                  placeholder="123 Main Street"
-                  className="pl-10"
-                  value={formData.address}
-                  onChange={handleChange("address")}
-                  required
-                />
-              </div>
+              <Input
+                id="address"
+                placeholder="123 Main Street"
+                value={formData.address}
+                onChange={handleChange("address")}
+                required
+              />
             </div>
 
             {/* City, Province, Postal Code */}
@@ -293,12 +313,12 @@ export function AddPropertyModal({ children }: AddPropertyModalProps) {
               {isLoading ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                  <span>Adding...</span>
+                  <span>Updating...</span>
                 </div>
               ) : (
                 <>
                   <Building2 className="w-4 h-4 mr-2" />
-                  Add Property
+                  Update Property
                 </>
               )}
             </Button>

@@ -17,8 +17,9 @@ interface Property {
   numberOfBathrooms?: number;
   squareMeters?: number;
   monthlyRent?: number;
+  description?: string;
   images: string[];
-  status: string;
+  status: string | number;
 }
 
 export default function Properties() {
@@ -116,6 +117,11 @@ export default function Properties() {
                           {[property.city, property.province].filter(Boolean).join(", ")}
                         </span>
                       </div>
+                    )}
+                    {property.description && (
+                      <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
+                        {property.description}
+                      </p>
                     )}
                   </div>
 
