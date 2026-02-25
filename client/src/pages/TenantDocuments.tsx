@@ -1,12 +1,13 @@
 import React from "react";
 import { useRoute, useLocation } from "wouter";
-import { ArrowLeft, Download, FileText, Eye, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, Download, FileText, Eye, X, ChevronLeft, ChevronRight, Upload } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { apiClient, getApiUrl } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import DocumentUploadModal from "@/components/DocumentUploadModal";
 
 type DocumentType =
   | "ID_DOCUMENT"
@@ -48,6 +49,8 @@ export default function TenantDocuments() {
   const [activeDocType, setActiveDocType] = React.useState<DocumentType | null>(null);
   const [documentUrls, setDocumentUrls] = React.useState<Map<DocumentType, string>>(new Map());
   const [propertyId, setPropertyId] = React.useState<string | null>(null);
+  const [uploadModalOpen, setUploadModalOpen] = React.useState(false);
+  const [uploadDocType, setUploadDocType] = React.useState<DocumentType | null>(null);
 
   React.useEffect(() => {
     if (!params?.idNumber) return;
@@ -210,6 +213,43 @@ export default function TenantDocuments() {
     }
   };
 
+  const handleUploadClick = (documentType: DocumentType) => {
+    setUploadDocType(documentType);
+    setUploadModalOpen(true);
+  };
+
+  const refreshDocuments = async () => {
+    if (!params?.idNumber) return;
+
+    const docsResponse = await apiClient.get(`/api/tenants/${params.idNumber}/documents`);
+    if (docsResponse.ok) {
+      const data = await docsResponse.json();
+      const documentList = (data.documents || []).map((fileName: string) => {
+        const docType = fileName.split('.')[0] as DocumentType;
+        return {
+          documentType: docType,
+          fileName: fileName,
+          hasDocument: true
+        };
+      });
+
+      const allDocTypes: DocumentType[] = [
+        "ID_DOCUMENT",
+        "PASSPORT",
+        "PROOF_OF_EMPLOYMENT",
+        "BANK_STATEMENTS",
+        "PROOF_OF_BANK_ACCOUNT"
+      ];
+
+      const completeList = allDocTypes.map(docType => {
+        const found = documentList.find((d: DocumentInfo) => d.documentType === docType);
+        return found || { documentType: docType, fileName: "", hasDocument: false };
+      });
+
+      setDocuments(completeList);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="p-12 text-center text-muted-foreground">
@@ -221,6 +261,21 @@ export default function TenantDocuments() {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
+      {/* Upload Modal */}
+      {uploadDocType && (
+        <DocumentUploadModal
+          isOpen={uploadModalOpen}
+          onClose={() => {
+            setUploadModalOpen(false);
+            setUploadDocType(null);
+          }}
+          documentType={uploadDocType}
+          documentLabel={documentLabels[uploadDocType]}
+          tenantIdNumber={params?.idNumber || ""}
+          onUploadSuccess={refreshDocuments}
+        />
+      )}
+
       {/* Header */}
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-4">
@@ -391,11 +446,23 @@ export default function TenantDocuments() {
                   >
                     <Download className="w-4 h-4" />
                   </Button>
+                  <Button
+                    variant="outline"
+                    className="rounded-full"
+                    onClick={() => handleUploadClick(doc.documentType)}
+                  >
+                    <Upload className="w-4 h-4" />
+                  </Button>
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  This document has not been uploaded yet.
-                </p>
+                <Button
+                  variant="default"
+                  className="rounded-full w-full"
+                  onClick={() => handleUploadClick(doc.documentType)}
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  Upload Document
+                </Button>
               )}
             </CardContent>
           </Card>
