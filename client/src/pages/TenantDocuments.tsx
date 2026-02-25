@@ -47,9 +47,17 @@ export default function TenantDocuments() {
   const [isViewerOpen, setIsViewerOpen] = React.useState(false);
   const [activeDocType, setActiveDocType] = React.useState<DocumentType | null>(null);
   const [documentUrls, setDocumentUrls] = React.useState<Map<DocumentType, string>>(new Map());
+  const [propertyId, setPropertyId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     if (!params?.idNumber) return;
+
+    // Get property ID from URL params if it was passed
+    const urlParams = new URLSearchParams(window.location.search);
+    const propId = urlParams.get('propertyId');
+    if (propId) {
+      setPropertyId(propId);
+    }
 
     const fetchTenantAndDocuments = async () => {
       try {
@@ -214,33 +222,35 @@ export default function TenantDocuments() {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setLocation(-1)}
-          className="rounded-full"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
-        <div className="flex-1">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-1">Tenant Documents</p>
-          <h1 className="text-2xl md:text-4xl font-bold tracking-tight">
-            {tenant?.name && tenant?.surname ? `${tenant.name} ${tenant.surname}` : `Tenant ${params?.idNumber}`}
-          </h1>
-          {tenant?.email && (
-            <p className="text-sm text-muted-foreground mt-1">{tenant.email}</p>
-          )}
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => propertyId ? setLocation(`/properties/${propertyId}`) : setLocation(-1)}
+            className="rounded-full flex-shrink-0"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-1">Tenant Documents</p>
+            <h1 className="text-xl md:text-4xl font-bold tracking-tight">
+              {tenant?.name && tenant?.surname ? `${tenant.name} ${tenant.surname}` : `Tenant ${params?.idNumber}`}
+            </h1>
+            {tenant?.email && (
+              <p className="text-sm text-muted-foreground mt-1">{tenant.email}</p>
+            )}
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Badge className="rounded-full">
+        <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+          <Badge className="rounded-full w-fit">
             {documents.filter(d => d.hasDocument).length} / {documents.length} Documents
           </Badge>
           {documents.some(d => d.hasDocument) && (
             <Button
               variant="default"
-              className="rounded-full"
-              onClick={openViewer}
+              className="rounded-full w-full sm:w-auto"
+              onClick={() => openViewer()}
             >
               <Eye className="w-4 h-4 mr-2" />
               View All Documents
@@ -251,29 +261,29 @@ export default function TenantDocuments() {
 
       {/* Document Viewer Modal */}
       {isViewerOpen && activeDocType && (
-        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#1C1C1E] rounded-3xl w-full max-w-7xl h-[95vh] flex flex-col shadow-2xl">
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-2 md:p-4">
+          <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl md:rounded-3xl w-full max-w-7xl h-[98vh] md:h-[95vh] flex flex-col shadow-2xl">
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-black/5 dark:border-white/5">
-              <div className="flex items-center gap-4">
-                <h2 className="text-xl font-bold">{tenant?.name && tenant?.surname ? `${tenant.name} ${tenant.surname}` : 'Tenant Documents'}</h2>
-                <Badge className="rounded-full">
-                  {documents.filter(d => d.hasDocument).length} Documents
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 md:p-6 border-b border-black/5 dark:border-white/5">
+              <div className="flex items-center gap-3 min-w-0">
+                <h2 className="text-base md:text-xl font-bold truncate">{tenant?.name && tenant?.surname ? `${tenant.name} ${tenant.surname}` : 'Tenant Documents'}</h2>
+                <Badge className="rounded-full flex-shrink-0">
+                  {documents.filter(d => d.hasDocument).length} Docs
                 </Badge>
               </div>
               <div className="flex gap-2">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="rounded-full"
+                  className="rounded-full flex-1 sm:flex-initial"
                   onClick={() => handleDownloadDocument(activeDocType)}
                 >
-                  <Download className="w-4 h-4 mr-2" />
-                  Download
+                  <Download className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Download</span>
                 </Button>
                 <Button
                   variant="outline"
-                  size="icon"
+                  size="sm"
                   className="rounded-full"
                   onClick={closeViewer}
                 >
@@ -283,11 +293,11 @@ export default function TenantDocuments() {
             </div>
 
             {/* Navigation Arrows */}
-            <div className="flex items-center gap-4 px-6 py-4 border-b border-black/5 dark:border-white/5">
+            <div className="flex items-center gap-2 md:gap-4 px-3 md:px-6 py-3 md:py-4 border-b border-black/5 dark:border-white/5">
               <Button
                 variant="outline"
                 size="icon"
-                className="rounded-full"
+                className="rounded-full flex-shrink-0 h-8 w-8 md:h-10 md:w-10"
                 onClick={() => navigateDocument('prev')}
                 disabled={documents.filter(d => d.hasDocument).findIndex(d => d.documentType === activeDocType) === 0}
               >
@@ -295,13 +305,13 @@ export default function TenantDocuments() {
               </Button>
 
               {/* Tabs */}
-              <Tabs value={activeDocType} onValueChange={(value) => setActiveDocType(value as DocumentType)} className="flex-1">
-                <TabsList className="w-full flex justify-start overflow-x-auto bg-transparent gap-2">
+              <Tabs value={activeDocType} onValueChange={(value) => setActiveDocType(value as DocumentType)} className="flex-1 min-w-0">
+                <TabsList className="w-full flex justify-start overflow-x-auto bg-transparent gap-1 md:gap-2">
                   {documents.filter(d => d.hasDocument).map((doc) => (
                     <TabsTrigger
                       key={doc.documentType}
                       value={doc.documentType}
-                      className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                      className="rounded-full text-xs md:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap px-3 md:px-4"
                     >
                       {documentLabels[doc.documentType]}
                     </TabsTrigger>
@@ -312,7 +322,7 @@ export default function TenantDocuments() {
               <Button
                 variant="outline"
                 size="icon"
-                className="rounded-full"
+                className="rounded-full flex-shrink-0 h-8 w-8 md:h-10 md:w-10"
                 onClick={() => navigateDocument('next')}
                 disabled={documents.filter(d => d.hasDocument).findIndex(d => d.documentType === activeDocType) === documents.filter(d => d.hasDocument).length - 1}
               >
@@ -321,18 +331,18 @@ export default function TenantDocuments() {
             </div>
 
             {/* Document Content */}
-            <div className="flex-1 overflow-hidden p-4 bg-gray-50 dark:bg-[#141414]">
+            <div className="flex-1 overflow-hidden p-2 md:p-4 bg-gray-50 dark:bg-[#141414]">
               {documentUrls.has(activeDocType) ? (
                 <iframe
                   src={documentUrls.get(activeDocType)}
-                  className="w-full h-full rounded-2xl bg-white"
+                  className="w-full h-full rounded-xl md:rounded-2xl bg-white"
                   title={documentLabels[activeDocType]}
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <div className="text-center">
-                    <div className="w-12 h-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-4" />
-                    <p className="text-muted-foreground">Loading document...</p>
+                    <div className="w-10 h-10 md:w-12 md:h-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-4" />
+                    <p className="text-sm md:text-base text-muted-foreground">Loading document...</p>
                   </div>
                 </div>
               )}

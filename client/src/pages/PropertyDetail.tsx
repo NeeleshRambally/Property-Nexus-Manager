@@ -708,7 +708,7 @@ export default function PropertyDetail() {
                   </div>
                   <Button
                     className="rounded-full w-full md:w-auto"
-                    onClick={() => setLocation(`/tenants/${property.currentTenantIdNumber}/documents`)}
+                    onClick={() => setLocation(`/tenants/${property.currentTenantIdNumber}/documents?propertyId=${property.id}`)}
                   >
                     <FileText className="w-4 h-4 mr-2" />
                     View Documents
