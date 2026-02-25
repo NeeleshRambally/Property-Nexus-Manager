@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -16,6 +18,27 @@ import {
 import { apiClient, getApiUrl } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { EditPropertyModal } from "@/components/EditPropertyModal";
+
+interface Tenant {
+  idNumber: string;
+  name?: string;
+  surname?: string;
+  email?: string;
+  cellNumber?: string;
+}
+
+interface TenantHistory {
+  tenantIdNumber: string;
+  startDate: string;
+  endDate?: string;
+  isCurrent: boolean;
+}
+
+interface LandlordHistory {
+  landlordIdNumber: string;
+  startDate: string;
+  endDate?: string;
+}
 
 interface Property {
   id: string;
@@ -29,8 +52,12 @@ interface Property {
   squareMeters?: number;
   monthlyRent?: number;
   description?: string;
+  currentLandlordIdNumber?: string;
+  landlordHistory: LandlordHistory[];
+  currentTenantIdNumber?: string;
+  tenantHistory: TenantHistory[];
   images: string[];
-  status: string | number;
+  status: 0 | 1 | 2 | string | number;
   createdAt: string;
   updatedAt: string;
 }
@@ -44,6 +71,9 @@ export default function PropertyDetail() {
   const [imageUrls, setImageUrls] = React.useState<string[]>([]);
   const [isUploadingImage, setIsUploadingImage] = React.useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = React.useState(false);
+  const [tenantDialogOpen, setTenantDialogOpen] = React.useState(false);
+  const [tenantIdNumber, setTenantIdNumber] = React.useState("");
+  const [tenants, setTenants] = React.useState<Map<string, Tenant>>(new Map());
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const fetchProperty = React.useCallback(async () => {
@@ -88,10 +118,50 @@ export default function PropertyDetail() {
     }
   }, [params?.id]);
 
+  const fetchTenantDetails = React.useCallback(async (tenantIdNumbers: string[]) => {
+    const newTenants = new Map(tenants);
+
+    for (const idNumber of tenantIdNumbers) {
+      if (newTenants.has(idNumber)) continue; // Skip if already fetched
+
+      try {
+        const response = await apiClient.get(`/api/tenants/${idNumber}`);
+        if (response.ok) {
+          const tenant = await response.json();
+          newTenants.set(idNumber, tenant);
+        }
+      } catch (error) {
+        console.error(`Failed to fetch tenant ${idNumber}:`, error);
+      }
+    }
+
+    setTenants(newTenants);
+  }, [tenants]);
+
   React.useEffect(() => {
     fetchProperty();
     fetchImageUrls();
   }, [fetchProperty, fetchImageUrls]);
+
+  React.useEffect(() => {
+    if (!property) return;
+
+    const tenantIds: string[] = [];
+    if (property.currentTenantIdNumber) {
+      tenantIds.push(property.currentTenantIdNumber);
+    }
+    if (property.tenantHistory) {
+      property.tenantHistory.forEach(t => {
+        if (!tenantIds.includes(t.tenantIdNumber)) {
+          tenantIds.push(t.tenantIdNumber);
+        }
+      });
+    }
+
+    if (tenantIds.length > 0) {
+      fetchTenantDetails(tenantIds);
+    }
+  }, [property]);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -161,6 +231,123 @@ export default function PropertyDetail() {
         variant: "destructive",
         title: "Delete Failed",
         description: error.message || "Could not delete image.",
+      });
+    }
+  };
+
+  const handleMarkOccupied = async (tenantIdNumber: string) => {
+    if (!property) return;
+
+    const landlordIdNumber = localStorage.getItem('landlordIdNumber');
+    if (!landlordIdNumber) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Landlord information not found.",
+      });
+      return;
+    }
+
+    try {
+      const response = await apiClient.post(
+        `/api/landlords/${landlordIdNumber}/properties/${property.id}/mark-occupied`,
+        { tenantIdNumber }
+      );
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to mark property as occupied");
+      }
+
+      toast({
+        title: "Success",
+        description: "Property marked as occupied!",
+      });
+
+      await fetchProperty();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Failed",
+        description: error.message || "Could not mark property as occupied.",
+      });
+    }
+  };
+
+  const handleMarkVacant = async () => {
+    if (!property) return;
+
+    const landlordIdNumber = localStorage.getItem('landlordIdNumber');
+    if (!landlordIdNumber) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Landlord information not found.",
+      });
+      return;
+    }
+
+    try {
+      const response = await apiClient.post(
+        `/api/landlords/${landlordIdNumber}/properties/${property.id}/mark-vacant`,
+        {}
+      );
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to mark property as vacant");
+      }
+
+      toast({
+        title: "Success",
+        description: "Property marked as vacant!",
+      });
+
+      await fetchProperty();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Failed",
+        description: error.message || "Could not mark property as vacant.",
+      });
+    }
+  };
+
+  const handleMarkUnavailable = async () => {
+    if (!property) return;
+
+    const landlordIdNumber = localStorage.getItem('landlordIdNumber');
+    if (!landlordIdNumber) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Landlord information not found.",
+      });
+      return;
+    }
+
+    try {
+      const response = await apiClient.post(
+        `/api/landlords/${landlordIdNumber}/properties/${property.id}/mark-unavailable`,
+        {}
+      );
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to mark property as unavailable");
+      }
+
+      toast({
+        title: "Success",
+        description: "Property marked as unavailable!",
+      });
+
+      await fetchProperty();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Failed",
+        description: error.message || "Could not mark property as unavailable.",
       });
     }
   };
@@ -384,90 +571,230 @@ export default function PropertyDetail() {
         </Card>
       </div>
 
-      {/* Current Tenant Section */}
+      {/* Property Status Management */}
       <Card className="border-none shadow-[0_4px_24px_rgba(0,0,0,0.04)] bg-white dark:bg-[#1C1C1E] rounded-[32px] overflow-hidden">
         <CardHeader className="px-6 py-5 border-b border-black/5 dark:border-white/5">
-          <CardTitle className="text-lg font-bold">Current Tenant</CardTitle>
+          <CardTitle className="text-lg font-bold">Property Status</CardTitle>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <Avatar className="h-16 w-16 rounded-2xl flex-shrink-0">
-                <AvatarImage src="/assets/images/avatar_2.jpg" />
-                <AvatarFallback className="rounded-2xl bg-primary/10 text-primary font-bold text-lg">
-                  SM
-                </AvatarFallback>
-              </Avatar>
-              <div className="space-y-2 min-w-0 flex-1">
-                <div>
-                  <h3 className="font-bold text-lg">Sarah Miller</h3>
-                  <p className="text-sm text-muted-foreground">Lease Start: Jan 1, 2024</p>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm">
-                  <div className="flex items-center gap-1 text-muted-foreground truncate">
-                    <Mail className="w-4 h-4 flex-shrink-0" />
-                    <span className="truncate">sarah.m@email.com</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <Phone className="w-4 h-4 flex-shrink-0" />
-                    <span>+27 82 123 4567</span>
-                  </div>
-                </div>
-              </div>
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <span className="font-medium">Current Status:</span>
+              <Badge className={`rounded-full ${
+                property.status === 0 || property.status === "0" ? 'bg-orange-500 text-white hover:bg-orange-600' :
+                property.status === 1 || property.status === "1" ? 'bg-emerald-500 text-white hover:bg-emerald-600' :
+                'bg-gray-500 text-white hover:bg-gray-600'
+              }`}>
+                {property.status === 0 || property.status === "0" ? 'Vacant' :
+                 property.status === 1 || property.status === "1" ? 'Occupied' :
+                 property.status === 2 || property.status === "2" ? 'Unavailable' : 'Unknown'}
+              </Badge>
             </div>
-            <Button className="rounded-full w-full md:w-auto">
-              <FileText className="w-4 h-4 mr-2" />
-              View Documents
-            </Button>
+
+            <div className="flex flex-wrap gap-2">
+              {(property.status === 0 || property.status === "0") && (
+                <>
+                  <Dialog open={tenantDialogOpen} onOpenChange={setTenantDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="default" className="rounded-full">
+                        Mark as Occupied
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Mark Property as Occupied</DialogTitle>
+                        <DialogDescription>
+                          Enter the tenant's ID number to link them to this property.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="tenantId">Tenant ID Number</Label>
+                          <Input
+                            id="tenantId"
+                            placeholder="Enter tenant ID number"
+                            value={tenantIdNumber}
+                            onChange={(e) => setTenantIdNumber(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <div className="flex gap-2 justify-end">
+                        <Button variant="outline" onClick={() => setTenantDialogOpen(false)}>
+                          Cancel
+                        </Button>
+                        <Button onClick={() => {
+                          handleMarkOccupied(tenantIdNumber);
+                          setTenantDialogOpen(false);
+                          setTenantIdNumber("");
+                        }}>
+                          Confirm
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                  <Button variant="outline" className="rounded-full" onClick={handleMarkUnavailable}>
+                    Mark as Unavailable
+                  </Button>
+                </>
+              )}
+
+              {(property.status === 1 || property.status === "1") && (
+                <Button variant="default" className="rounded-full" onClick={handleMarkVacant}>
+                  Mark as Vacant
+                </Button>
+              )}
+
+              {(property.status === 2 || property.status === "2") && (
+                <Button variant="default" className="rounded-full" onClick={handleMarkVacant}>
+                  Mark as Vacant
+                </Button>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Previous Tenants Section */}
-      <Card className="border-none shadow-[0_4px_24px_rgba(0,0,0,0.04)] bg-white dark:bg-[#1C1C1E] rounded-[32px] overflow-hidden">
-        <CardHeader className="px-6 py-5 border-b border-black/5 dark:border-white/5">
-          <CardTitle className="text-lg font-bold">Previous Tenants</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="max-h-[500px] overflow-y-auto">
-            <div className="divide-y divide-black/5 dark:divide-white/5">
-              {[
-                { name: "Robert Johnson", email: "robert.j@email.com", phone: "+27 81 234 5678", period: "Jan 2023 - Dec 2023", avatar: "RJ" },
-                { name: "Emily Davis", email: "emily.d@email.com", phone: "+27 83 345 6789", period: "Mar 2022 - Dec 2022", avatar: "ED" },
-                { name: "Michael Brown", email: "michael.b@email.com", phone: "+27 84 456 7890", period: "Jun 2021 - Feb 2022", avatar: "MB" }
-              ].map((tenant, index) => (
-              <div key={index} className="p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
-                <div className="flex items-center gap-4 min-w-0 flex-1">
-                  <Avatar className="h-12 w-12 rounded-2xl flex-shrink-0">
-                    <AvatarFallback className="rounded-2xl bg-muted text-muted-foreground font-bold">
-                      {tenant.avatar}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0 flex-1">
-                    <h4 className="font-bold text-sm">{tenant.name}</h4>
-                    <p className="text-xs text-muted-foreground mb-1">{tenant.period}</p>
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-xs text-muted-foreground">
-                      <div className="flex items-center gap-1 truncate">
-                        <Mail className="w-3 h-3 flex-shrink-0" />
-                        <span className="truncate">{tenant.email}</span>
+      {/* Current Tenant Section */}
+      {property.currentTenantIdNumber && (
+        <Card className="border-none shadow-[0_4px_24px_rgba(0,0,0,0.04)] bg-white dark:bg-[#1C1C1E] rounded-[32px] overflow-hidden">
+          <CardHeader className="px-6 py-5 border-b border-black/5 dark:border-white/5">
+            <CardTitle className="text-lg font-bold">Current Tenant</CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            {(() => {
+              const tenant = tenants.get(property.currentTenantIdNumber);
+              const currentTenantHistory = property.tenantHistory?.find(t => t.isCurrent);
+
+              return (
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-16 w-16 rounded-2xl flex-shrink-0">
+                      <AvatarFallback className="rounded-2xl bg-primary/10 text-primary font-bold text-lg">
+                        {tenant?.name && tenant?.surname ?
+                          (tenant.name.charAt(0) + tenant.surname.charAt(0)).toUpperCase() :
+                          property.currentTenantIdNumber.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="space-y-2 min-w-0 flex-1">
+                      <div>
+                        <h3 className="font-bold text-lg">
+                          {tenant?.name && tenant?.surname ?
+                            `${tenant.name} ${tenant.surname}` :
+                            `Tenant ID: ${property.currentTenantIdNumber}`}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          Lease Start: {currentTenantHistory?.startDate ?
+                            new Date(currentTenantHistory.startDate).toLocaleDateString() :
+                            'N/A'}
+                        </p>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Phone className="w-3 h-3 flex-shrink-0" />
-                        <span>{tenant.phone}</span>
-                      </div>
+                      {tenant && (
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm">
+                          {tenant.email && (
+                            <div className="flex items-center gap-1 text-muted-foreground truncate">
+                              <Mail className="w-4 h-4 flex-shrink-0" />
+                              <span className="truncate">{tenant.email}</span>
+                            </div>
+                          )}
+                          {tenant.cellNumber && (
+                            <div className="flex items-center gap-1 text-muted-foreground">
+                              <Phone className="w-4 h-4 flex-shrink-0" />
+                              <span>{tenant.cellNumber}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
-                <Button variant="outline" size="sm" className="rounded-full w-full md:w-auto">
-                  <FileText className="w-4 h-4 mr-2" />
-                  View Documents
-                </Button>
+              );
+            })()}
+          </CardContent>
+        </Card>
+      )}
+
+      {!property.currentTenantIdNumber && (property.status === 0 || property.status === "0") && (
+        <Card className="border-none shadow-[0_4px_24px_rgba(0,0,0,0.04)] bg-white dark:bg-[#1C1C1E] rounded-[32px] overflow-hidden">
+          <CardHeader className="px-6 py-5 border-b border-black/5 dark:border-white/5">
+            <CardTitle className="text-lg font-bold">Current Tenant</CardTitle>
+          </CardHeader>
+          <CardContent className="p-6 text-center text-muted-foreground">
+            <User className="w-12 h-12 mx-auto mb-2 opacity-20" />
+            <p>No current tenant</p>
+            <p className="text-sm mt-1">Property is vacant</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Previous Tenants Section */}
+      {property.tenantHistory && property.tenantHistory.filter(t => !t.isCurrent).length > 0 && (
+        <Card className="border-none shadow-[0_4px_24px_rgba(0,0,0,0.04)] bg-white dark:bg-[#1C1C1E] rounded-[32px] overflow-hidden">
+          <CardHeader className="px-6 py-5 border-b border-black/5 dark:border-white/5">
+            <CardTitle className="text-lg font-bold">Previous Tenants</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="max-h-[500px] overflow-y-auto">
+              <div className="divide-y divide-black/5 dark:divide-white/5">
+                {property.tenantHistory.filter(t => !t.isCurrent).map((tenantHistory, index) => {
+                  const tenant = tenants.get(tenantHistory.tenantIdNumber);
+
+                  return (
+                    <div key={index} className="p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
+                      <div className="flex items-center gap-4 min-w-0 flex-1">
+                        <Avatar className="h-12 w-12 rounded-2xl flex-shrink-0">
+                          <AvatarFallback className="rounded-2xl bg-muted text-muted-foreground font-bold">
+                            {tenant?.name && tenant?.surname ?
+                              (tenant.name.charAt(0) + tenant.surname.charAt(0)).toUpperCase() :
+                              tenantHistory.tenantIdNumber.substring(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-bold text-sm">
+                            {tenant?.name && tenant?.surname ?
+                              `${tenant.name} ${tenant.surname}` :
+                              `Tenant ID: ${tenantHistory.tenantIdNumber}`}
+                          </h4>
+                          <p className="text-xs text-muted-foreground mb-1">
+                            {new Date(tenantHistory.startDate).toLocaleDateString()} - {tenantHistory.endDate ? new Date(tenantHistory.endDate).toLocaleDateString() : 'Present'}
+                          </p>
+                          {tenant && (
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-xs text-muted-foreground">
+                              {tenant.email && (
+                                <div className="flex items-center gap-1 truncate">
+                                  <Mail className="w-3 h-3 flex-shrink-0" />
+                                  <span className="truncate">{tenant.email}</span>
+                                </div>
+                              )}
+                              {tenant.cellNumber && (
+                                <div className="flex items-center gap-1">
+                                  <Phone className="w-3 h-3 flex-shrink-0" />
+                                  <span>{tenant.cellNumber}</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-              ))}
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
+
+      {property.tenantHistory && property.tenantHistory.filter(t => !t.isCurrent).length === 0 && (
+        <Card className="border-none shadow-[0_4px_24px_rgba(0,0,0,0.04)] bg-white dark:bg-[#1C1C1E] rounded-[32px] overflow-hidden">
+          <CardHeader className="px-6 py-5 border-b border-black/5 dark:border-white/5">
+            <CardTitle className="text-lg font-bold">Previous Tenants</CardTitle>
+          </CardHeader>
+          <CardContent className="p-6 text-center text-muted-foreground">
+            <User className="w-12 h-12 mx-auto mb-2 opacity-20" />
+            <p>No previous tenants</p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
