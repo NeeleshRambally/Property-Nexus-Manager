@@ -1,4 +1,4 @@
-import { Link, useLocation } from "wouter";
+import { Link, useLocation, useRoute } from "wouter";
 import React from "react";
 import {
   LayoutDashboard,
@@ -10,8 +10,7 @@ import {
   MessageSquare,
   Settings,
   Bell,
-  Search,
-  Plus
+  Search
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
@@ -132,13 +131,12 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
           </div>
           
           <div className="flex items-center gap-3">
-            <button className="p-2 text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-all">
-              <Plus className="w-5 h-5 md:w-6 md:h-6" />
-            </button>
-            <button className="relative p-2 text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-all">
-              <Bell className="w-5 h-5 md:w-6 md:h-6" />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-black"></span>
-            </button>
+            <Link href="/notifications">
+              <button className="relative p-2 text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-all">
+                <Bell className="w-5 h-5 md:w-6 md:h-6" />
+                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-black"></span>
+              </button>
+            </Link>
           </div>
         </header>
 

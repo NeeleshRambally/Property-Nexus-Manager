@@ -12,6 +12,7 @@ import Tenants from "./pages/Tenants";
 import Properties from "./pages/Properties";
 import PropertyDetail from "./pages/PropertyDetail";
 import TenantDocuments from "./pages/TenantDocuments";
+import Notifications from "./pages/Notifications";
 
 function Router() {
   const [location, setLocation] = useLocation();
@@ -44,6 +45,7 @@ function Router() {
             <Route path="/properties/:id" component={PropertyDetail} />
             <Route path="/tenants" component={Tenants} />
             <Route path="/tenants/:idNumber/documents" component={TenantDocuments} />
+            <Route path="/notifications" component={Notifications} />
             <Route path="/documents">
               <div className="p-8"><h1 className="text-2xl font-bold">Documents</h1><p className="text-muted-foreground">Document center coming soon.</p></div>
             </Route>
