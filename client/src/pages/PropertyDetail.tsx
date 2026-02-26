@@ -249,6 +249,23 @@ export default function PropertyDetail() {
     }
 
     try {
+      // Step 1: Link tenant to landlord FIRST
+      console.log('Linking tenant:', tenantIdNumber, 'to landlord:', landlordIdNumber);
+      const linkResponse = await apiClient.post(
+        `/api/landlords/${landlordIdNumber}/tenants/link`,
+        { tenantIdNumber }
+      );
+
+      if (!linkResponse.ok) {
+        const linkError = await linkResponse.text();
+        console.error('Link tenant failed:', linkError);
+        throw new Error(linkError || "Failed to link tenant to landlord");
+      }
+
+      const linkData = await linkResponse.json();
+      console.log('Tenant linked successfully:', linkData);
+
+      // Step 2: Mark property as occupied
       const response = await apiClient.post(
         `/api/landlords/${landlordIdNumber}/properties/${property.id}/mark-occupied`,
         { tenantIdNumber }
@@ -261,11 +278,15 @@ export default function PropertyDetail() {
 
       toast({
         title: "Success",
-        description: "Property marked as occupied!",
+        description: "Property marked as occupied and tenant linked!",
       });
+
+      // Dispatch event to refresh tenants page
+      window.dispatchEvent(new Event('tenantLinked'));
 
       await fetchProperty();
     } catch (error: any) {
+      console.error('Mark occupied error:', error);
       toast({
         variant: "destructive",
         title: "Failed",
@@ -288,6 +309,20 @@ export default function PropertyDetail() {
     }
 
     try {
+      // Step 1: Unlink tenant if property has a current tenant
+      if (property.currentTenantIdNumber) {
+        try {
+          await apiClient.post(
+            `/api/landlords/${landlordIdNumber}/tenants/${property.currentTenantIdNumber}/unlink`,
+            {}
+          );
+        } catch (unlinkError) {
+          console.error("Failed to unlink tenant:", unlinkError);
+          // Continue anyway - we'll still mark property as vacant
+        }
+      }
+
+      // Step 2: Mark property as vacant
       const response = await apiClient.post(
         `/api/landlords/${landlordIdNumber}/properties/${property.id}/mark-vacant`,
         {}
@@ -300,8 +335,11 @@ export default function PropertyDetail() {
 
       toast({
         title: "Success",
-        description: "Property marked as vacant!",
+        description: "Property marked as vacant and tenant unlinked!",
       });
+
+      // Dispatch event to refresh tenants page
+      window.dispatchEvent(new Event('tenantUnlinked'));
 
       await fetchProperty();
     } catch (error: any) {

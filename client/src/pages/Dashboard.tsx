@@ -50,11 +50,22 @@ interface Property {
   status: string | number;
 }
 
+interface Tenant {
+  idNumber: string;
+  name?: string;
+  surname?: string;
+  email?: string;
+  cellNumber?: string;
+  currentLandlordIdNumber?: string;
+}
+
 export default function Dashboard() {
   const [vettingRequests, setVettingRequests] = React.useState<any[]>([]);
   const [isLoadingRequests, setIsLoadingRequests] = React.useState(true);
   const [properties, setProperties] = React.useState<Property[]>([]);
   const [isLoadingProperties, setIsLoadingProperties] = React.useState(true);
+  const [currentTenants, setCurrentTenants] = React.useState<Tenant[]>([]);
+  const [isLoadingTenants, setIsLoadingTenants] = React.useState(true);
   const { toast } = useToast();
 
   const fetchProperties = React.useCallback(async () => {
@@ -91,20 +102,47 @@ export default function Dashboard() {
     }
   }, []);
 
+  const fetchCurrentTenants = React.useCallback(async () => {
+    const landlordIdNumber = localStorage.getItem("landlordIdNumber");
+    if (!landlordIdNumber) return;
+
+    try {
+      const response = await apiClient.get(`/api/landlords/${landlordIdNumber}/tenants/all`);
+      if (response.ok) {
+        const allTenants: Tenant[] = await response.json();
+        const current = allTenants.filter(t => t.currentLandlordIdNumber === landlordIdNumber);
+        setCurrentTenants(current);
+      }
+    } catch (error) {
+      console.error("Failed to fetch tenants:", error);
+    } finally {
+      setIsLoadingTenants(false);
+    }
+  }, []);
+
   React.useEffect(() => {
     fetchProperties();
     fetchVettingRequests();
+    fetchCurrentTenants();
 
-    // Listen for new vetting requests and properties
+    // Listen for new vetting requests, properties, and tenant changes
     const handleNewRequest = () => fetchVettingRequests();
     const handleNewProperty = () => fetchProperties();
+    const handleTenantLinked = () => fetchCurrentTenants();
+    const handleTenantUnlinked = () => fetchCurrentTenants();
+
     window.addEventListener("vettingRequestCreated", handleNewRequest);
     window.addEventListener("propertyCreated", handleNewProperty);
+    window.addEventListener("tenantLinked", handleTenantLinked);
+    window.addEventListener("tenantUnlinked", handleTenantUnlinked);
+
     return () => {
       window.removeEventListener("vettingRequestCreated", handleNewRequest);
       window.removeEventListener("propertyCreated", handleNewProperty);
+      window.removeEventListener("tenantLinked", handleTenantLinked);
+      window.removeEventListener("tenantUnlinked", handleTenantUnlinked);
     };
-  }, [fetchVettingRequests, fetchProperties]);
+  }, [fetchVettingRequests, fetchProperties, fetchCurrentTenants]);
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
       <div className="flex items-end justify-between">
@@ -260,36 +298,53 @@ export default function Dashboard() {
         {/* Recent Activity / Tenants */}
         <Card className="border-none shadow-[0_4px_24px_rgba(0,0,0,0.04)] bg-white dark:bg-[#1C1C1E] rounded-[32px] overflow-hidden">
           <CardHeader className="px-6 py-5 border-b border-black/5 dark:border-white/5">
-            <CardTitle className="text-lg font-bold">Recent Tenants</CardTitle>
+            <CardTitle className="text-lg font-bold">Current Tenants</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="divide-y divide-black/5 dark:divide-white/5">
-              {[
-                { name: "Sarah Miller", unit: "123 Horizon Ave, 4B", img: "/assets/images/avatar_2.jpg" },
-                { name: "Robert Johnson", unit: "456 Oak Lane, Ste 1", img: "/assets/images/avatar_3.jpg" }
-              ].map((tenant, i) => (
-                <div key={i} className="p-5 flex items-center justify-between group active:bg-black/[0.02] transition-colors">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-11 w-11 rounded-2xl border-2 border-white dark:border-[#1C1C1E] shadow-sm">
-                      <AvatarImage src={tenant.img} />
-                      <AvatarFallback className="rounded-2xl">{tenant.name[0]}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-bold text-sm leading-tight">{tenant.name}</p>
-                      <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight mt-0.5">{tenant.unit}</p>
+            {isLoadingTenants ? (
+              <div className="p-8 text-center text-muted-foreground">
+                <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-2" />
+                Loading tenants...
+              </div>
+            ) : currentTenants.length === 0 ? (
+              <div className="p-8 text-center text-muted-foreground">
+                <Users className="w-12 h-12 mx-auto mb-2 opacity-20" />
+                <p className="text-sm">No current tenants</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-black/5 dark:divide-white/5">
+                {currentTenants.slice(0, 3).map((tenant) => (
+                  <div key={tenant.idNumber} className="p-5 flex items-center justify-between group active:bg-black/[0.02] transition-colors">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-11 w-11 rounded-2xl border-2 border-white dark:border-[#1C1C1E] shadow-sm">
+                        <AvatarFallback className="rounded-2xl bg-primary/10 text-primary font-bold">
+                          {tenant.name && tenant.surname
+                            ? (tenant.name.charAt(0) + tenant.surname.charAt(0)).toUpperCase()
+                            : tenant.idNumber.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-bold text-sm leading-tight">
+                          {tenant.name && tenant.surname
+                            ? `${tenant.name} ${tenant.surname}`
+                            : `Tenant ${tenant.idNumber}`}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-tight mt-0.5">
+                          {tenant.email || tenant.cellNumber || tenant.idNumber}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon" className="h-10 w-10 rounded-2xl text-muted-foreground hover:bg-primary/10 hover:text-primary">
-                    <Eye className="w-5 h-5" />
-                  </Button>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
           <div className="p-6 pt-2">
-            <Button variant="outline" className="w-full h-12 rounded-[18px] border-black/5 dark:border-white/5 text-sm font-bold bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:bg-black/5 border-none">
-              View Directory
-            </Button>
+            <Link href="/tenants">
+              <Button variant="outline" className="w-full h-12 rounded-[18px] border-black/5 dark:border-white/5 text-sm font-bold bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:bg-black/5 border-none">
+                View Directory
+              </Button>
+            </Link>
           </div>
         </Card>
       </div>
