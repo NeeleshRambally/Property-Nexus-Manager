@@ -8,6 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { apiClient, getApiUrl } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import DocumentUploadModal from "@/components/DocumentUploadModal";
+import { AITenantSummaryModal } from "@/components/AITenantSummaryModal";
 
 type DocumentType =
   | "ID_DOCUMENT"
@@ -28,6 +29,9 @@ interface Tenant {
   surname?: string;
   email?: string;
   cellNumber?: string;
+  aiSummary?: string;
+  aiAnalysis?: string;
+  lastAnalysisDate?: string;
 }
 
 const documentLabels: Record<DocumentType, string> = {
@@ -303,6 +307,40 @@ export default function TenantDocuments() {
             )}
           </div>
         </div>
+
+        {/* AI Summary Card */}
+        {tenant && (tenant.aiSummary || tenant.aiAnalysis) && (
+          <Card className="border-none shadow-[0_4px_24px_rgba(0,0,0,0.04)] bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20 rounded-[24px]">
+            <CardContent className="p-4 md:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-full bg-primary/10">
+                    <FileText className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm md:text-base mb-1">AI-Generated Tenant Analysis Available</h3>
+                    <p className="text-xs md:text-sm text-muted-foreground">
+                      View automated analysis based on submitted documents
+                      {tenant.lastAnalysisDate && ` • Last updated ${new Date(tenant.lastAnalysisDate).toLocaleDateString()}`}
+                    </p>
+                  </div>
+                </div>
+                <AITenantSummaryModal
+                  aiSummary={tenant.aiSummary}
+                  aiAnalysis={tenant.aiAnalysis}
+                  lastAnalysisDate={tenant.lastAnalysisDate}
+                  tenantName={tenant.name && tenant.surname ? `${tenant.name} ${tenant.surname}` : `Tenant ${params?.idNumber}`}
+                >
+                  <Button variant="default" className="rounded-full w-full sm:w-auto">
+                    <FileText className="w-4 h-4 mr-2" />
+                    View AI Summary
+                  </Button>
+                </AITenantSummaryModal>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
           <Badge className="rounded-full w-fit">
             {documents.filter(d => d.hasDocument).length} / {documents.length} Documents

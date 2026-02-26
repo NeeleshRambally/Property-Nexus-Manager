@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { RequestScreeningModal } from "@/components/RequestScreeningModal";
+import { AITenantSummaryModal } from "@/components/AITenantSummaryModal";
 import { apiClient } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
@@ -37,6 +38,9 @@ interface Tenant {
   landlordHistory: TenantLandlordHistory[];
   createdAt: string;
   lastSignIn?: string;
+  aiSummary?: string;
+  aiAnalysis?: string;
+  lastAnalysisDate?: string;
 }
 
 export default function Tenants() {
@@ -300,6 +304,23 @@ export default function Tenants() {
                       <FileText className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
                       Documents
                     </Button>
+                    {(tenant.aiSummary || tenant.aiAnalysis) && (
+                      <AITenantSummaryModal
+                        aiSummary={tenant.aiSummary}
+                        aiAnalysis={tenant.aiAnalysis}
+                        lastAnalysisDate={tenant.lastAnalysisDate}
+                        tenantName={tenant.name && tenant.surname ? `${tenant.name} ${tenant.surname}` : `Tenant ${tenant.idNumber}`}
+                      >
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="rounded-full text-xs md:text-sm h-8 md:h-9 flex-1 sm:flex-none"
+                        >
+                          <FileText className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
+                          AI Summary
+                        </Button>
+                      </AITenantSummaryModal>
+                    )}
                     <Button
                       variant="outline"
                       size="sm"
