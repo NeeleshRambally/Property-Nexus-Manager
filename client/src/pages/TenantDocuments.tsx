@@ -282,7 +282,13 @@ export default function TenantDocuments() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => propertyId ? setLocation(`/properties/${propertyId}`) : setLocation(-1)}
+            onClick={() => {
+              if (propertyId && propertyId !== 'none') {
+                setLocation(`/properties/${propertyId}`);
+              } else {
+                setLocation('/tenants');
+              }
+            }}
             className="rounded-full flex-shrink-0"
           >
             <ArrowLeft className="w-5 h-5" />
