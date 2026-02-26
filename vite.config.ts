@@ -43,6 +43,10 @@ export default defineConfig({
       input: {
         main: path.resolve(import.meta.dirname, "client/index.html"),
       },
+      output: {
+        // Generate a build manifest with hashed filenames
+        manualChunks: undefined,
+      },
     },
   },
   server: {

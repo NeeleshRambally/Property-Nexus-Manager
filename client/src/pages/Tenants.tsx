@@ -239,12 +239,12 @@ export default function Tenants() {
     return (
       <Card
         key={tenant.idNumber}
-        className="border-none shadow-[0_4px_24px_rgba(0,0,0,0.04)] bg-white dark:bg-[#1C1C1E] rounded-[32px] overflow-hidden hover:shadow-[0_8px_32px_rgba(0,0,0,0.08)] transition-all"
+        className="border-none shadow-[0_4px_24px_rgba(0,0,0,0.04)] bg-white dark:bg-[#1C1C1E] rounded-[24px] md:rounded-[32px] overflow-hidden hover:shadow-[0_8px_32px_rgba(0,0,0,0.08)] transition-all"
       >
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row gap-6">
-            <Avatar className="h-16 w-16 rounded-2xl flex-shrink-0">
-              <AvatarFallback className="rounded-2xl bg-primary/10 text-primary font-bold text-lg">
+        <CardContent className="p-4 md:p-6">
+          <div className="flex items-start gap-3 md:gap-4">
+            <Avatar className="h-12 w-12 md:h-16 md:w-16 rounded-2xl flex-shrink-0">
+              <AvatarFallback className="rounded-2xl bg-primary/10 text-primary font-bold text-base md:text-lg">
                 {tenant.name && tenant.surname
                   ? (tenant.name.charAt(0) + tenant.surname.charAt(0)).toUpperCase()
                   : tenant.idNumber.substring(0, 2).toUpperCase()}
@@ -252,65 +252,64 @@ export default function Tenants() {
             </Avatar>
 
             <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-4 mb-3">
-                <div>
-                  <h3 className="text-lg font-bold">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-base md:text-lg font-bold truncate">
                     {tenant.name && tenant.surname
                       ? `${tenant.name} ${tenant.surname}`
                       : `Tenant ${tenant.idNumber}`}
                   </h3>
-                  <p className="text-sm text-muted-foreground">ID: {tenant.idNumber}</p>
+                  <p className="text-xs md:text-sm text-muted-foreground truncate">ID: {tenant.idNumber}</p>
                 </div>
                 {isCurrent && (
-                  <Badge className="rounded-full bg-emerald-500 text-white">
+                  <Badge className="rounded-full bg-emerald-500 text-white text-xs px-2 py-0.5 flex-shrink-0">
                     Active
                   </Badge>
                 )}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+              <div className="space-y-1.5 mb-3">
                 {tenant.email && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Mail className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                  <div className="flex items-center gap-2 text-xs md:text-sm">
+                    <Mail className="w-3.5 h-3.5 md:w-4 md:h-4 text-muted-foreground flex-shrink-0" />
                     <span className="truncate">{tenant.email}</span>
                   </div>
                 )}
                 {tenant.cellNumber && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Phone className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                  <div className="flex items-center gap-2 text-xs md:text-sm">
+                    <Phone className="w-3.5 h-3.5 md:w-4 md:h-4 text-muted-foreground flex-shrink-0" />
                     <span>{tenant.cellNumber}</span>
+                  </div>
+                )}
+                {period && (
+                  <div className="text-xs text-muted-foreground">
+                    <span className="font-medium">Period:</span> {period.from} - {period.to}
                   </div>
                 )}
               </div>
 
-              {period && (
-                <div className="text-xs text-muted-foreground mb-4">
-                  <span className="font-medium">Period:</span> {period.from} - {period.to}
-                </div>
-              )}
-
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 {isCurrent && (
                   <>
                     <Button
                       variant="default"
                       size="sm"
-                      className="rounded-full"
+                      className="rounded-full text-xs md:text-sm h-8 md:h-9 flex-1 sm:flex-none"
                       onClick={() => setLocation(`/tenants/${tenant.idNumber}/documents?propertyId=none`)}
                     >
-                      <FileText className="w-4 h-4 mr-2" />
-                      View Documents
+                      <FileText className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
+                      Documents
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      className="rounded-full"
+                      className="rounded-full text-xs md:text-sm h-8 md:h-9 flex-1 sm:flex-none"
                       onClick={() => {
                         setTenantToUnlink(tenant);
                         setUnlinkDialogOpen(true);
                       }}
                     >
-                      <Unlink className="w-4 h-4 mr-2" />
+                      <Unlink className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1.5 md:mr-2" />
                       Unlink
                     </Button>
                   </>
@@ -415,15 +414,21 @@ export default function Tenants() {
       </Dialog>
 
       <Tabs defaultValue="current" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 rounded-full">
-          <TabsTrigger value="current" className="rounded-full">
-            Current Tenants ({currentTenants.length})
+        <TabsList className="grid w-full grid-cols-3 rounded-full h-auto md:h-10 p-1">
+          <TabsTrigger value="current" className="rounded-full text-xs md:text-sm px-2 md:px-4 py-2 md:py-2 leading-tight">
+            <span className="hidden sm:inline">Current Tenants</span>
+            <span className="sm:hidden">Current</span>
+            <span className="ml-1">({currentTenants.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="previous" className="rounded-full">
-            Previous Tenants ({previousTenants.length})
+          <TabsTrigger value="previous" className="rounded-full text-xs md:text-sm px-2 md:px-4 py-2 md:py-2 leading-tight">
+            <span className="hidden sm:inline">Previous Tenants</span>
+            <span className="sm:hidden">Previous</span>
+            <span className="ml-1">({previousTenants.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="screening" className="rounded-full">
-            Screening ({vettingRequests.length})
+          <TabsTrigger value="screening" className="rounded-full text-xs md:text-sm px-2 md:px-4 py-2 md:py-2 leading-tight">
+            <span className="hidden sm:inline">Screening</span>
+            <span className="sm:hidden">Screen</span>
+            <span className="ml-1">({vettingRequests.length})</span>
           </TabsTrigger>
         </TabsList>
 

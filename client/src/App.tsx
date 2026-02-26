@@ -13,6 +13,8 @@ import Properties from "./pages/Properties";
 import PropertyDetail from "./pages/PropertyDetail";
 import TenantDocuments from "./pages/TenantDocuments";
 import Notifications from "./pages/Notifications";
+import TestUpdateToast from "./pages/TestUpdateToast";
+import { useVersionCheck } from "./hooks/useVersionCheck";
 
 function Router() {
   const [location, setLocation] = useLocation();
@@ -61,6 +63,7 @@ function Router() {
             <Route path="/settings">
               <div className="p-8"><h1 className="text-2xl font-bold">Settings</h1><p className="text-muted-foreground">Account and role settings coming soon.</p></div>
             </Route>
+            <Route path="/test-update-toast" component={TestUpdateToast} />
             <Route component={NotFound} />
           </Switch>
         </SidebarLayout>
@@ -70,6 +73,8 @@ function Router() {
 }
 
 function App() {
+  useVersionCheck();
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
