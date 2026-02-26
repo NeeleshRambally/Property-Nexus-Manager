@@ -10,7 +10,8 @@ import {
   MessageSquare,
   Settings,
   Bell,
-  Search
+  Search,
+  UserCircle
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
@@ -92,8 +93,18 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
             <DropdownMenuContent align="start" className="w-64 rounded-2xl p-2 shadow-2xl">
               <DropdownMenuLabel className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">My Account</DropdownMenuLabel>
               <DropdownMenuSeparator className="my-1" />
-              <DropdownMenuItem className="rounded-xl px-3 py-2 cursor-pointer">Profile Settings</DropdownMenuItem>
-              <DropdownMenuItem className="rounded-xl px-3 py-2 cursor-pointer">Security</DropdownMenuItem>
+              <Link href="/profile">
+                <DropdownMenuItem className="rounded-xl px-3 py-2 cursor-pointer">
+                  <UserCircle className="w-4 h-4 mr-2" />
+                  Profile
+                </DropdownMenuItem>
+              </Link>
+              <Link href="/settings">
+                <DropdownMenuItem className="rounded-xl px-3 py-2 cursor-pointer">
+                  <Settings className="w-4 h-4 mr-2" />
+                  Settings
+                </DropdownMenuItem>
+              </Link>
               <DropdownMenuSeparator className="my-1" />
               <DropdownMenuItem
                 className="text-destructive focus:text-destructive cursor-pointer rounded-xl px-3 py-2"
@@ -179,6 +190,21 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 rounded-2xl mb-2">
+              <DropdownMenuLabel className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator className="my-1" />
+              <Link href="/profile">
+                <DropdownMenuItem className="rounded-xl px-3 py-2 cursor-pointer">
+                  <UserCircle className="w-4 h-4 mr-2" />
+                  Profile
+                </DropdownMenuItem>
+              </Link>
+              <Link href="/settings">
+                <DropdownMenuItem className="rounded-xl px-3 py-2 cursor-pointer">
+                  <Settings className="w-4 h-4 mr-2" />
+                  Settings
+                </DropdownMenuItem>
+              </Link>
+              <DropdownMenuSeparator className="my-1" />
               <DropdownMenuItem
                 className="text-destructive font-medium rounded-xl"
                 onClick={() => {

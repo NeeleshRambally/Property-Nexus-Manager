@@ -13,6 +13,7 @@ import Properties from "./pages/Properties";
 import PropertyDetail from "./pages/PropertyDetail";
 import TenantDocuments from "./pages/TenantDocuments";
 import Notifications from "./pages/Notifications";
+import Profile from "./pages/Profile";
 import TestUpdateToast from "./pages/TestUpdateToast";
 import { useVersionCheck } from "./hooks/useVersionCheck";
 
@@ -48,6 +49,7 @@ function Router() {
             <Route path="/tenants" component={Tenants} />
             <Route path="/tenants/:idNumber/documents" component={TenantDocuments} />
             <Route path="/notifications" component={Notifications} />
+            <Route path="/profile" component={Profile} />
             <Route path="/documents">
               <div className="p-8"><h1 className="text-2xl font-bold">Documents</h1><p className="text-muted-foreground">Document center coming soon.</p></div>
             </Route>
