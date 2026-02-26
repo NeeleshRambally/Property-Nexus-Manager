@@ -1,7 +1,7 @@
 {
   "name": "Property Nexus Manager",
   "short_name": "PropNexus",
-  "description": "Modern property management dashboard for landlords and property managers",
+  "description": "Modern property management dashboard powered by Jenna AI for landlords and property managers",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

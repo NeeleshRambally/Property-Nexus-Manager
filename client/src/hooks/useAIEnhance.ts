@@ -47,7 +47,7 @@ export function useAIEnhance(options?: UseAIEnhanceOptions) {
 
       toast({
         title: "Success",
-        description: "Text enhanced with AI!",
+        description: "Text enhanced with Jenna AI!",
       });
 
       return enhancedText;

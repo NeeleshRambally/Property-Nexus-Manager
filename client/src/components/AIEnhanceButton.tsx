@@ -65,7 +65,7 @@ export function AIEnhanceButton({
       onAccept(data.enhancedDescription);
 
       toast({
-        title: "AI Enhancement Ready",
+        title: "Jenna AI Enhancement Ready",
         description: "Review the enhanced description and accept or reject it.",
       });
     } catch (error) {
@@ -142,7 +142,7 @@ export function AIEnhanceButton({
       className={className}
     >
       <Sparkles className={`${size === 'sm' ? 'w-3.5 h-3.5' : 'w-4 h-4'} mr-2`} />
-      {isEnhancing ? "Enhancing..." : "Enhance with AI"}
+      {isEnhancing ? "Enhancing..." : "Enhance with Jenna"}
     </Button>
   );
 }

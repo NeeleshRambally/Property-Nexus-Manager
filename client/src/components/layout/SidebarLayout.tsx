@@ -47,11 +47,14 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
       {/* Desktop Sidebar */}
       <div className="w-72 bg-white dark:bg-[#1C1C1E] border-r border-black/5 dark:border-white/5 hidden md:flex flex-col z-10">
         <div className="h-20 flex items-center px-8">
-          <div className="flex items-center gap-3 text-primary">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white shadow-lg shadow-primary/20">
-              <Building2 className="w-5 h-5" />
+          <div className="flex flex-col gap-0.5">
+            <div className="flex items-center gap-3 text-primary">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white shadow-lg shadow-primary/20">
+                <Building2 className="w-5 h-5" />
+              </div>
+              <span className="font-bold text-2xl tracking-tight text-black dark:text-white">RentAssured</span>
             </div>
-            <span className="font-bold text-2xl tracking-tight text-black dark:text-white">RentAssured</span>
+            <span className="text-[10px] font-medium text-muted-foreground ml-11">Powered by Jenna AI</span>
           </div>
         </div>
         

@@ -37,7 +37,7 @@ export function AITenantSummaryModal({
         {children || (
           <Button variant="outline" size="sm" className="rounded-full">
             <Sparkles className="w-4 h-4 mr-2" />
-            AI Summary
+            Jenna AI Summary
           </Button>
         )}
       </DialogTrigger>
@@ -45,7 +45,7 @@ export function AITenantSummaryModal({
         <DialogHeader>
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary" />
-            <DialogTitle>AI-Generated Tenant Analysis</DialogTitle>
+            <DialogTitle>Jenna AI Tenant Analysis</DialogTitle>
           </div>
           <DialogDescription>
             Analysis for {tenantName}
