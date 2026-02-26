@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Check, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { apiClient } from "@/lib/api";
 
 interface AIEnhanceButtonProps {
   originalText: string;
@@ -45,18 +46,12 @@ export function AIEnhanceButton({
     setOriginalSaved(originalText);
 
     try {
-      const response = await fetch('/api/ai/enhance-property-description', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          originalDescription: originalText,
-          propertyType,
-          bedrooms,
-          bathrooms,
-          monthlyRent,
-        }),
+      const response = await apiClient.post('/api/ai/enhance-property-description', {
+        originalDescription: originalText,
+        propertyType,
+        bedrooms,
+        bathrooms,
+        monthlyRent,
       });
 
       if (!response.ok) {
