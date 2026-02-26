@@ -349,67 +349,6 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* iOS Style Document Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="p-6 rounded-[32px] bg-white dark:bg-[#1C1C1E] shadow-[0_4px_24px_rgba(0,0,0,0.04)] border-none">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60">Property Docs</h3>
-            <div className="p-2 bg-primary/10 rounded-full text-primary">
-              <Plus className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="space-y-3">
-             <div className="p-4 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] flex items-center justify-between active:scale-[0.98] transition-all cursor-pointer">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white dark:bg-black rounded-xl shadow-sm">
-                    <FileCheck className="w-4 h-4 text-blue-500" />
-                  </div>
-                  <span className="text-sm font-bold">Insurance 2024</span>
-                </div>
-                <Download className="w-4 h-4 text-muted-foreground" />
-             </div>
-             <div className="p-4 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] flex items-center justify-between active:scale-[0.98] transition-all cursor-pointer">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white dark:bg-black rounded-xl shadow-sm">
-                    <FileText className="w-4 h-4 text-purple-500" />
-                  </div>
-                  <span className="text-sm font-bold">Tax Form 1099</span>
-                </div>
-                <Download className="w-4 h-4 text-muted-foreground" />
-             </div>
-          </div>
-        </div>
-
-        <div className="p-6 rounded-[32px] bg-white dark:bg-[#1C1C1E] shadow-[0_4px_24px_rgba(0,0,0,0.04)] border-none">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60">Tenant Docs</h3>
-            <div className="p-2 bg-primary/10 rounded-full text-primary">
-              <Plus className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="space-y-3">
-             <div className="p-4 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] flex items-center justify-between active:scale-[0.98] transition-all cursor-pointer">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white dark:bg-black rounded-xl shadow-sm">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                  </div>
-                  <span className="text-sm font-bold">Lease - Sarah M.</span>
-                </div>
-                <Eye className="w-4 h-4 text-muted-foreground" />
-             </div>
-             <div className="p-4 rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] flex items-center justify-between active:scale-[0.98] transition-all cursor-pointer">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white dark:bg-black rounded-xl shadow-sm">
-                    <FileText className="w-4 h-4 text-orange-500" />
-                  </div>
-                  <span className="text-sm font-bold">BG Check - John S.</span>
-                </div>
-                <Eye className="w-4 h-4 text-muted-foreground" />
-             </div>
-          </div>
-        </div>
-      </div>
-
       {/* Vetting Requests Section */}
       <Card className="border-none shadow-[0_4px_24px_rgba(0,0,0,0.04)] bg-white dark:bg-[#1C1C1E] rounded-[32px] overflow-hidden">
         <CardHeader className="px-6 py-5 border-b border-black/5 dark:border-white/5">
