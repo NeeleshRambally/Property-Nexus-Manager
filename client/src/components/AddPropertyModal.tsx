@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiClient } from "@/lib/api";
 import { Plus, Building2, MapPin, Home } from "lucide-react";
+import { AIEnhanceButton } from "./AIEnhanceButton";
 import {
   Select,
   SelectContent,
@@ -269,7 +270,19 @@ export function AddPropertyModal({ children }: AddPropertyModalProps) {
 
             {/* Description */}
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="description">Description</Label>
+                <AIEnhanceButton
+                  originalText={formData.description}
+                  propertyType={formData.propertyType}
+                  bedrooms={formData.numberOfBedrooms ? parseInt(formData.numberOfBedrooms) : undefined}
+                  bathrooms={formData.numberOfBathrooms ? parseInt(formData.numberOfBathrooms) : undefined}
+                  monthlyRent={formData.monthlyRent ? parseFloat(formData.monthlyRent) : undefined}
+                  onAccept={(enhancedText) => {
+                    setFormData(prev => ({ ...prev, description: enhancedText }));
+                  }}
+                />
+              </div>
               <Textarea
                 id="description"
                 placeholder="Enter property description..."
