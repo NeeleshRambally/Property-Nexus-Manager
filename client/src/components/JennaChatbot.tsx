@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, Send, X, Sparkles, Loader2 } from 'lucide-react';
+import { MessageCircle, Send, X, Sparkles, Loader2, Mic, MicOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -15,8 +15,10 @@ interface JennaChatbotProps {
 export function JennaChatbot({ isOpen: controlledIsOpen, onOpenChange }: JennaChatbotProps = {}) {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
+  const [isListening, setIsListening] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<any>(null);
 
   // Use controlled state if provided, otherwise use internal state
   const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
@@ -47,6 +49,59 @@ export function JennaChatbot({ isOpen: controlledIsOpen, onOpenChange }: JennaCh
       inputRef.current.focus();
     }
   }, [isOpen]);
+
+  // Initialize speech recognition
+  useEffect(() => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      console.warn('Speech recognition not supported in this browser');
+      return;
+    }
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setInputValue(transcript);
+      setIsListening(false);
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error('Speech recognition error:', event.error);
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognitionRef.current = recognition;
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, []);
+
+  const toggleSpeechRecognition = () => {
+    if (!recognitionRef.current) {
+      alert('Speech recognition is not supported in your browser. Try Chrome, Edge, or Safari.');
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    } else {
+      recognitionRef.current.start();
+      setIsListening(true);
+    }
+  };
 
   const handleSend = () => {
     if (!inputValue.trim() || isSending || !isConnected) {
@@ -198,10 +253,23 @@ export function JennaChatbot({ isOpen: controlledIsOpen, onOpenChange }: JennaCh
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Ask Jenna anything..."
-                disabled={!isConnected || isSending}
+                placeholder={isListening ? "Listening..." : "Ask Jenna anything..."}
+                disabled={!isConnected || isSending || isListening}
                 className="flex-1 rounded-full"
               />
+              <Button
+                onClick={toggleSpeechRecognition}
+                disabled={!isConnected || isSending}
+                size="icon"
+                variant={isListening ? "default" : "outline"}
+                className={cn(
+                  "rounded-full flex-shrink-0",
+                  isListening && "bg-red-500 hover:bg-red-600 animate-pulse"
+                )}
+                title={isListening ? "Stop recording" : "Start voice input"}
+              >
+                {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+              </Button>
               <Button
                 onClick={handleSend}
                 disabled={!isConnected || isSending || !inputValue.trim()}
