@@ -5,18 +5,20 @@ import { requestNotificationPermission, subscribeToPushNotifications } from "./l
 
 createRoot(document.getElementById("root")!).render(<App />);
 
-// Register service worker for PWA (only in production)
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
+// Register service worker for PWA
+if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
       .register('/sw.js')
       .then((registration) => {
         console.log('Service Worker registered:', registration);
 
-        // Check for updates every 60 seconds
-        setInterval(() => {
-          registration.update();
-        }, 60000);
+        // Check for updates every 60 seconds (production only)
+        if (import.meta.env.PROD) {
+          setInterval(() => {
+            registration.update();
+          }, 60000);
+        }
 
         // Listen for updates
         registration.addEventListener('updatefound', () => {
@@ -35,9 +37,12 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
 
         // Request notification permission and subscribe after service worker is ready
         setTimeout(async () => {
-          const permission = await requestNotificationPermission();
-          if (permission === 'granted') {
-            await subscribeToPushNotifications();
+          // Only auto-request if user is authenticated
+          if (localStorage.getItem('isAuthenticated') === 'true') {
+            const permission = await requestNotificationPermission();
+            if (permission === 'granted') {
+              await subscribeToPushNotifications();
+            }
           }
         }, 2000); // Wait 2 seconds after app loads to avoid overwhelming user
       })
