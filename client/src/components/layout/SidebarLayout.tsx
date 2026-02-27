@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
+import { JennaChatbot } from "@/components/JennaChatbot";
 
 import {
   DropdownMenu,
@@ -223,6 +224,9 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
           </DropdownMenu>
         </nav>
       </div>
+
+      {/* Jenna AI Chatbot Widget */}
+      <JennaChatbot />
     </div>
   );
 }
