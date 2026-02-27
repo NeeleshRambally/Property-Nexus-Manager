@@ -1,4 +1,4 @@
-import { Link, useLocation, useRoute } from "wouter";
+import { Link, useLocation, useRoute, useRouter } from "wouter";
 import React, { useState } from "react";
 import {
   LayoutDashboard,
@@ -36,7 +36,7 @@ const navigation = [
 ];
 
 export function SidebarLayout({ children }: { children: React.ReactNode }) {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [userEmail, setUserEmail] = useState("");
   const [isChatOpen, setIsChatOpen] = useState(false);
 
@@ -44,6 +44,14 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
     const email = localStorage.getItem("userEmail") || "";
     setUserEmail(email);
   }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("isAuthenticated");
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userEmail");
+    // Use wouter navigation instead of window.location
+    setLocation("/login");
+  };
 
   return (
     <div className="flex h-[100dvh] overflow-hidden bg-[#F2F2F7] dark:bg-black font-sans">
@@ -114,12 +122,7 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
               <DropdownMenuSeparator className="my-1" />
               <DropdownMenuItem
                 className="text-destructive focus:text-destructive cursor-pointer rounded-xl px-3 py-2"
-                onClick={() => {
-                  localStorage.removeItem("isAuthenticated");
-                  localStorage.removeItem("authToken");
-                  localStorage.removeItem("userEmail");
-                  window.location.href = "/login";
-                }}
+                onClick={handleLogout}
               >
                 Log out
               </DropdownMenuItem>
@@ -221,12 +224,7 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
               <DropdownMenuSeparator className="my-1" />
               <DropdownMenuItem
                 className="text-destructive font-medium rounded-xl"
-                onClick={() => {
-                  localStorage.removeItem("isAuthenticated");
-                  localStorage.removeItem("authToken");
-                  localStorage.removeItem("userEmail");
-                  window.location.href = "/login";
-                }}
+                onClick={handleLogout}
               >
                 Log out
               </DropdownMenuItem>
