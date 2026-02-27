@@ -1,5 +1,5 @@
 import { Link, useLocation, useRoute } from "wouter";
-import React from "react";
+import React, { useState } from "react";
 import {
   LayoutDashboard,
   Building2,
@@ -11,7 +11,8 @@ import {
   Settings,
   Bell,
   Search,
-  UserCircle
+  UserCircle,
+  Sparkles
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
@@ -36,7 +37,8 @@ const navigation = [
 
 export function SidebarLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
-  const [userEmail, setUserEmail] = React.useState("");
+  const [userEmail, setUserEmail] = useState("");
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   React.useEffect(() => {
     const email = localStorage.getItem("userEmail") || "";
@@ -145,7 +147,14 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
+            <button
+              onClick={() => setIsChatOpen(true)}
+              className="relative p-2 text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-all"
+              aria-label="Open Jenna AI Chat"
+            >
+              <Sparkles className="w-5 h-5 md:w-6 md:h-6" />
+            </button>
             <Link href="/notifications">
               <button className="relative p-2 text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-all">
                 <Bell className="w-5 h-5 md:w-6 md:h-6" />
@@ -226,7 +235,7 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Jenna AI Chatbot Widget */}
-      <JennaChatbot />
+      <JennaChatbot isOpen={isChatOpen} onOpenChange={setIsChatOpen} />
     </div>
   );
 }

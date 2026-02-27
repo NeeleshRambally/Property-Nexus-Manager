@@ -7,11 +7,26 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useJennaChatbot } from '@/hooks/useJennaChatbot';
 import { cn } from '@/lib/utils';
 
-export function JennaChatbot() {
-  const [isOpen, setIsOpen] = useState(false);
+interface JennaChatbotProps {
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export function JennaChatbot({ isOpen: controlledIsOpen, onOpenChange }: JennaChatbotProps = {}) {
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Use controlled state if provided, otherwise use internal state
+  const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
+  const setIsOpen = (open: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(open);
+    } else {
+      setInternalIsOpen(open);
+    }
+  };
 
   const {
     messages,
@@ -51,11 +66,11 @@ export function JennaChatbot() {
 
   return (
     <>
-      {/* Floating Chat Button */}
+      {/* Floating Chat Button - Desktop Only */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 w-14 h-14 bg-primary hover:bg-primary/90 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110 z-50"
+          className="hidden md:flex fixed bottom-6 right-6 w-14 h-14 bg-primary hover:bg-primary/90 text-white rounded-full shadow-lg items-center justify-center transition-all hover:scale-110 z-50"
           aria-label="Open Jenna AI Chat"
         >
           <MessageCircle className="w-6 h-6" />
@@ -67,7 +82,7 @@ export function JennaChatbot() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 w-96 h-[600px] bg-white dark:bg-[#1C1C1E] rounded-2xl shadow-2xl flex flex-col z-50 border border-black/10 dark:border-white/10">
+        <div className="fixed inset-x-0 top-0 md:bottom-6 md:right-6 md:left-auto md:top-auto md:w-96 h-full md:h-[600px] bg-white dark:bg-[#1C1C1E] md:rounded-2xl shadow-2xl flex flex-col z-50 border-t md:border border-black/10 dark:border-white/10">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-black/10 dark:border-white/10 bg-gradient-to-r from-primary/5 to-primary/10 rounded-t-2xl">
             <div className="flex items-center gap-3">
