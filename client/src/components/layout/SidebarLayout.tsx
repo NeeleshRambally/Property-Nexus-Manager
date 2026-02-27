@@ -148,12 +148,13 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
           </div>
           
           <div className="flex items-center gap-2 md:gap-3">
+            {/* Jenna AI button - Mobile only */}
             <button
               onClick={() => setIsChatOpen(true)}
-              className="relative p-2 text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-all"
+              className="md:hidden relative p-2 text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-all"
               aria-label="Open Jenna AI Chat"
             >
-              <Sparkles className="w-5 h-5 md:w-6 md:h-6" />
+              <Sparkles className="w-5 h-5" />
             </button>
             <Link href="/notifications">
               <button className="relative p-2 text-muted-foreground hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-all">
