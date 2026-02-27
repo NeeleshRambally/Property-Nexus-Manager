@@ -36,7 +36,7 @@ export async function requestNotificationPermission(): Promise<NotificationPermi
   return permission;
 }
 
-export async function subscribeToPushNotifications(forceResubscribe = false): Promise<PushSubscription | null> {
+export async function subscribeToPushNotifications(): Promise<PushSubscription | null> {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
     console.warn('Push notifications are not supported');
     return null;
@@ -48,16 +48,10 @@ export async function subscribeToPushNotifications(forceResubscribe = false): Pr
     // Check if already subscribed locally
     let subscription = await registration.pushManager.getSubscription();
 
-    if (subscription && !forceResubscribe) {
+    if (subscription) {
       console.log('Already subscribed to push notifications locally');
-
-      // Verify subscription exists in backend
-      const isInBackend = await checkSubscriptionInBackend(subscription);
-      if (!isInBackend) {
-        console.log('Subscription not in backend, re-sending...');
-        await sendSubscriptionToBackend(subscription);
-      }
-
+      // Always re-send to backend in case it was deleted
+      await sendSubscriptionToBackend(subscription);
       return subscription;
     }
 
@@ -133,31 +127,6 @@ export async function showLocalNotification(title: string, options?: Notificatio
       icon: '/favicon.png',
       ...options
     });
-  }
-}
-
-// Helper to check if subscription exists in backend
-async function checkSubscriptionInBackend(subscription: PushSubscription): Promise<boolean> {
-  try {
-    const landlordIdNumber = localStorage.getItem('landlordIdNumber');
-
-    if (!landlordIdNumber) {
-      console.warn('No landlord ID found');
-      return false;
-    }
-
-    const subscriptionData = subscription.toJSON();
-
-    // Check if this endpoint exists in backend
-    const response = await fetch(getApiUrl(`/api/notifications/check?endpoint=${encodeURIComponent(subscriptionData.endpoint || '')}`), {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' }
-    });
-
-    return response.ok;
-  } catch (error) {
-    console.error('Error checking subscription in backend:', error);
-    return false;
   }
 }
 
