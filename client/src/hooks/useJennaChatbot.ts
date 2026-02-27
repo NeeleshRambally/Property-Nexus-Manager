@@ -29,12 +29,15 @@ export function useJennaChatbot() {
 
   // Determine WebSocket URL based on environment
   const getWebSocketUrl = () => {
+    const landlordId = localStorage.getItem('landlordIdNumber');
+    const queryParam = landlordId ? `?landlordId=${landlordId}` : '';
+
     // Check if we're in production (Railway)
     if (window.location.hostname.includes('railway.app')) {
-      return 'wss://rentassured-api-production.up.railway.app/ws/chatbot';
+      return `wss://rentassured-api-production.up.railway.app/ws/chatbot${queryParam}`;
     }
     // Local development - connect directly to backend API on port 5087
-    return 'ws://localhost:5087/ws/chatbot';
+    return `ws://localhost:5087/ws/chatbot${queryParam}`;
   };
 
   const connect = useCallback(() => {
